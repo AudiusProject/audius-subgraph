@@ -1,0 +1,12 @@
+{
+  "audiusToken": "0x74f24429ec3708fc21381e017194A5711E93B751",
+  "claimsManager": "0xe39b1cA04fc06c416c4eaBd188Cb1330b8FED781",
+  "delegateManager": "0xfFbEfA971Df7E0659a837ec071001Bd3451ba5c5",
+  "governance": "0x8f93A31d84517E3664109c9ae4aF561AC5274744",
+  "registry": "0xe39b1cA04fc06c416c4eaBd188Cb1330b8FED781",
+  "serviceProviderFactory": "0xf6E9Fc1AEbb0cF50e0BceE8446Dd01DE741B6351",
+  "serviceTypeManager": "0x26cA8f858aB1765538cCc10981915Aa3B6851f01",
+  "staking": "0x508a5dE6a61A062278623f93d448b40717665f80",
+  "blockNumber": "8893400",
+  "network": "ropsten"
+}

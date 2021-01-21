@@ -1,0 +1,293 @@
+specVersion: 0.0.2
+description: Audius
+repository: https://github.com/AudiusProject/audius-subgraph
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: AudiusToken
+    network: {{network}}
+    source:
+      address: '{{audiusToken}}'
+      abi: AudiusToken
+      startBlock: {{blockNumber}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - AudiusToken
+      abis:
+        - name: AudiusToken
+          file: ./abis/AudiusToken.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+        - event: Approval(indexed address,indexed address,uint256)
+          handler: handleApproval
+      file: ./src/mappings/audiusToken.ts
+  - kind: ethereum/contract
+    name: ClaimsManager
+    network: {{network}}
+    source:
+      address: '{{claimsManager}}'
+      abi: ClaimsManager
+      startBlock: {{blockNumber}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - ClaimsManager
+      abis:
+        - name: ClaimsManager
+          file: ./abis/ClaimsManager.json
+      eventHandlers:
+        - event: RoundInitiated(indexed uint256,indexed uint256,indexed uint256)
+          handler: handleRoundInitiated
+        - event: ClaimProcessed(indexed address,indexed uint256,uint256,indexed uint256)
+          handler: handleClaimProcessed
+        - event: CommunityRewardsTransferred(indexed address,indexed uint256)
+          handler: handleCommunityRewardsTransferred
+        - event: FundingAmountUpdated(indexed uint256)
+          handler: handleFundingAmountUpdated
+        - event: FundingRoundBlockDiffUpdated(indexed uint256)
+          handler: handleFundingRoundBlockDiffUpdated
+        - event: GovernanceAddressUpdated(indexed address)
+          handler: handleGovernanceAddressUpdated
+        - event: StakingAddressUpdated(indexed address)
+          handler: handleStakingAddressUpdated
+        - event: ServiceProviderFactoryAddressUpdated(indexed address)
+          handler: handleServiceProviderFactoryAddressUpdated
+        - event: DelegateManagerAddressUpdated(indexed address)
+          handler: handleDelegateManagerAddressUpdated
+        - event: RecurringCommunityFundingAmountUpdated(indexed uint256)
+          handler: handleRecurringCommunityFundingAmountUpdated
+        - event: CommunityPoolAddressUpdated(indexed address)
+          handler: handleCommunityPoolAddressUpdated
+      file: ./src/mappings/claimsManager.ts
+
+  - kind: ethereum/contract
+    name: DelegateManager
+    network: {{network}}
+    source:
+      address: '{{delegateManager}}'
+      abi: DelegateManager
+      startBlock: {{blockNumber}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - DelegateManager
+      abis:
+        - name: DelegateManager
+          file: ./abis/DelegateManager.json
+      eventHandlers:
+        - event: IncreaseDelegatedStake(indexed address,indexed address,indexed uint256)
+          handler: handleIncreaseDelegatedStake
+        - event: UndelegateStakeRequested(indexed address,indexed address,indexed uint256,uint256)
+          handler: handleUndelegateStakeRequested
+        - event: UndelegateStakeRequestCancelled(indexed address,indexed address,indexed uint256)
+          handler: handleUndelegateStakeRequestCancelled
+        - event: UndelegateStakeRequestEvaluated(indexed address,indexed address,indexed uint256)
+          handler: handleUndelegateStakeRequestEvaluated
+        - event: Claim(indexed address,indexed uint256,indexed uint256)
+          handler: handleClaim
+        - event: Slash(indexed address,indexed uint256,indexed uint256)
+          handler: handleSlash
+        - event: RemoveDelegatorRequested(indexed address,indexed address,indexed uint256)
+          handler: handleRemoveDelegatorRequested
+        - event: RemoveDelegatorRequestCancelled(indexed address,indexed address)
+          handler: handleRemoveDelegatorRequestCancelled
+        - event: RemoveDelegatorRequestEvaluated(indexed address,indexed address,indexed uint256)
+          handler: handleRemoveDelegatorRequestEvaluated
+        - event: MaxDelegatorsUpdated(indexed uint256)
+          handler: handleMaxDelegatorsUpdated
+        - event: MinDelegationUpdated(indexed uint256)
+          handler: handleMinDelegationUpdated
+        - event: UndelegateLockupDurationUpdated(indexed uint256)
+          handler: handleUndelegateLockupDurationUpdated
+        - event: GovernanceAddressUpdated(indexed address)
+          handler: handleGovernanceAddressUpdated
+        - event: StakingAddressUpdated(indexed address)
+          handler: handleStakingAddressUpdated
+        - event: ServiceProviderFactoryAddressUpdated(indexed address)
+          handler: handleServiceProviderFactoryAddressUpdated
+        - event: ClaimsManagerAddressUpdated(indexed address)
+          handler: handleClaimsManagerAddressUpdated
+        - event: RemoveDelegatorLockupDurationUpdated(indexed uint256)
+          handler: handleRemoveDelegatorLockupDurationUpdated
+        - event: RemoveDelegatorEvalDurationUpdated(indexed uint256)
+          handler: handleRemoveDelegatorEvalDurationUpdated
+      file: ./src/mappings/DelegateManager.ts
+  - kind: ethereum/contract
+    name: Governance
+    network: {{network}}
+    source:
+      address: '{{governance}}'
+      abi: Governance
+      startBlock: {{blockNumber}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - Governance
+      abis:
+        - name: Governance
+          file: ./abis/Governance.json
+      eventHandlers:
+        - event: ProposalSubmitted(indexed uint256,indexed address,string,string)
+          handler: handleProposalSubmitted
+        - event: ProposalVoteSubmitted(indexed uint256,indexed address,indexed uint8,uint256)
+          handler: handleProposalVoteSubmitted
+        - event: ProposalVoteUpdated(indexed uint256,indexed address,indexed uint8,uint256,uint8)
+          handler: handleProposalVoteUpdated
+        - event: ProposalOutcomeEvaluated(indexed uint256,indexed uint8,uint256,uint256,uint256)
+          handler: handleProposalOutcomeEvaluated
+        - event: ProposalTransactionExecuted(indexed uint256,indexed bool,bytes)
+          handler: handleProposalTransactionExecuted
+        - event: GuardianTransactionExecuted(indexed address,uint256,indexed string,indexed bytes,bytes)
+          handler: handleGuardianTransactionExecuted
+        - event: ProposalVetoed(indexed uint256)
+          handler: handleProposalVetoed
+        - event: RegistryAddressUpdated(indexed address)
+          handler: handleRegistryAddressUpdated
+        - event: GuardianshipTransferred(indexed address)
+          handler: handleGuardianshipTransferred
+        - event: VotingPeriodUpdated(indexed uint256)
+          handler: handleVotingPeriodUpdated
+        - event: ExecutionDelayUpdated(indexed uint256)
+          handler: handleExecutionDelayUpdated
+        - event: VotingQuorumPercentUpdated(indexed uint256)
+          handler: handleVotingQuorumPercentUpdated
+        - event: MaxInProgressProposalsUpdated(indexed uint256)
+          handler: handleMaxInProgressProposalsUpdated
+      file: ./src/mappings/governance.ts
+  - kind: ethereum/contract
+    name: Registry
+    network: {{network}}
+    source:
+      address: '{{registry}}'
+      abi: Registry
+      startBlock: {{blockNumber}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - Registry
+      abis:
+        - name: Registry
+          file: ./abis/Registry.json
+      eventHandlers:
+        - event: ContractAdded(indexed bytes32,indexed address)
+          handler: handleContractAdded
+        - event: ContractRemoved(indexed bytes32,indexed address)
+          handler: handleContractRemoved
+        - event: ContractUpgraded(indexed bytes32,indexed address,indexed address)
+          handler: handleContractUpgraded
+      file: ./src/mappings/registry.ts
+  - kind: ethereum/contract
+    name: ServiceProviderFactory
+    network: {{network}}
+    source:
+      address: '{{serviceProviderFactory}}'
+      abi: ServiceProviderFactory
+      startBlock: {{blockNumber}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - ServiceProviderFactory
+      abis:
+        - name: ServiceProviderFactory
+          file: ./abis/ServiceProviderFactory.json
+      eventHandlers:
+        - event: RegisteredServiceProvider(indexed uint256,indexed bytes32,indexed address,string,uint256)
+          handler: handleRegisteredServiceProvider
+        - event: DeregisteredServiceProvider(indexed uint256,indexed bytes32,indexed address,string,uint256)
+          handler: handleDeregisteredServiceProvider
+        - event: IncreasedStake(indexed address,indexed uint256,indexed uint256)
+          handler: handleIncreasedStake
+        - event: DecreaseStakeRequested(indexed address,indexed uint256,indexed uint256)
+          handler: handleDecreaseStakeRequested
+        - event: DecreaseStakeRequestCancelled(indexed address,indexed uint256,indexed uint256)
+          handler: handleDecreaseStakeRequestCancelled
+        - event: DecreaseStakeRequestEvaluated(indexed address,indexed uint256,indexed uint256)
+          handler: handleDecreaseStakeRequestEvaluated
+        - event: EndpointUpdated(indexed bytes32,indexed address,string,string,indexed uint256)
+          handler: handleEndpointUpdated
+        - event: DelegateOwnerWalletUpdated(indexed address,indexed bytes32,indexed uint256,address)
+          handler: handleDelegateOwnerWalletUpdated
+        - event: DeployerCutUpdateRequested(indexed address,indexed uint256,indexed uint256)
+          handler: handleDeployerCutUpdateRequested
+        - event: DeployerCutUpdateRequestCancelled(indexed address,indexed uint256,indexed uint256)
+          handler: handleDeployerCutUpdateRequestCancelled
+        - event: DeployerCutUpdateRequestEvaluated(indexed address,indexed uint256)
+          handler: handleDeployerCutUpdateRequestEvaluated
+        - event: DecreaseStakeLockupDurationUpdated(indexed uint256)
+          handler: handleDecreaseStakeLockupDurationUpdated
+        - event: UpdateDeployerCutLockupDurationUpdated(indexed uint256)
+          handler: handleUpdateDeployerCutLockupDurationUpdated
+        - event: GovernanceAddressUpdated(indexed address)
+          handler: handleGovernanceAddressUpdated
+        - event: StakingAddressUpdated(indexed address)
+          handler: handleStakingAddressUpdated
+        - event: ClaimsManagerAddressUpdated(indexed address)
+          handler: handleClaimsManagerAddressUpdated
+        - event: DelegateManagerAddressUpdated(indexed address)
+          handler: handleDelegateManagerAddressUpdated
+        - event: ServiceTypeManagerAddressUpdated(indexed address)
+          handler: handleServiceTypeManagerAddressUpdated
+      file: ./src/mappings/serviceProviderFactory.ts
+  - kind: ethereum/contract
+    name: ServiceTypeManager
+    network: {{network}}
+    source:
+      address: '{{serviceTypeManager}}'
+      abi: ServiceTypeManager
+      startBlock: {{blockNumber}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - ServiceTypeManager
+      abis:
+        - name: ServiceTypeManager
+          file: ./abis/ServiceTypeManager.json
+      eventHandlers:
+        - event: SetServiceVersion(indexed bytes32,indexed bytes32)
+          handler: handleSetServiceVersion
+        - event: ServiceTypeAdded(indexed bytes32,indexed uint256,indexed uint256)
+          handler: handleServiceTypeAdded
+        - event: ServiceTypeRemoved(indexed bytes32)
+          handler: handleServiceTypeRemoved
+      file: ./src/mappings/serviceTypeManager.ts
+  - kind: ethereum/contract
+    name: Staking
+    network: {{network}}
+    source:
+      address: '{{staking}}'
+      abi: Staking
+      startBlock: {{blockNumber}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - Staking
+      abis:
+        - name: Staking
+          file: ./abis/Staking.json
+      eventHandlers:
+        - event: Staked(indexed address,uint256,uint256)
+          handler: handleStaked
+        - event: Unstaked(indexed address,uint256,uint256)
+          handler: handleUnstaked
+        - event: Slashed(indexed address,uint256,uint256)
+          handler: handleSlashed
+      file: ./src/mappings/staking.ts

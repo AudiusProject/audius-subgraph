@@ -1,0 +1,986 @@
+{
+  "contractName": "InitializableV2",
+  "abi": [
+    {
+      "constant": false,
+      "inputs": [],
+      "name": "initialize",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "metadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":false,\"inputs\":[],\"name\":\"initialize\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{\"initialize()\":{\"notice\":\"wrapper function around parent contract Initializable's `initializable` modifier     initializable modifier ensures this function can only be called once by each deployed child contract     sets isInitialized flag to true to which is used by _requireIsInitialized()\"}},\"notice\":\"Wrapper around OpenZeppelin's Initializable contract. Exposes initialized state management to ensure logic contract functions cannot be called before initialization. This is needed because OZ's Initializable contract no longer exposes initialized state variable. https://github.com/OpenZeppelin/openzeppelin-sdk/blob/v2.8.0/packages/lib/contracts/Initializable.sol\"}},\"settings\":{\"compilationTarget\":{\"/Users/joey/workspace/audius-protocol/eth-contracts/contracts/InitializableV2.sol\":\"InitializableV2\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"/Users/joey/workspace/audius-protocol/eth-contracts/contracts/InitializableV2.sol\":{\"keccak256\":\"0x9564096a2676909356ddb04a4571ba70715aef37553313b20a54fea062f47a8b\",\"urls\":[\"bzz-raw://5d27d9afb8def820292f69f2e701bdd34b0990e4fdce22cdda45fb857fc90028\",\"dweb:/ipfs/QmNsHWsiJUvvVfFYNECgoHiDx8r5GF5fb77EJprBeSAozv\"]},\"@openzeppelin/upgrades/contracts/Initializable.sol\":{\"keccak256\":\"0x9bfec92e36234ecc99b5d37230acb6cd1f99560233753162204104a4897e8721\",\"urls\":[\"bzz-raw://5cf7c208583d4d046d75bd99f5507412ab01cce9dd9f802ce9768a416d93ea2f\",\"dweb:/ipfs/QmcQS1BBMPpVEkXP3qzwSjxHNrqDek8YeR7xbVWDC9ApC7\"]}},\"version\":1}",
+  "bytecode": "0x608060405234801561001057600080fd5b50610152806100206000396000f3fe608060405234801561001057600080fd5b506004361061002b5760003560e01c80638129fc1c14610030575b600080fd5b61003861003a565b005b600054610100900460ff168061005357506100536100e9565b80610061575060005460ff16155b61009c5760405162461bcd60e51b815260040180806020018281038252602e8152602001806100f0602e913960400191505060405180910390fd5b600054610100900460ff161580156100c7576000805460ff1961ff0019909116610100171660011790555b6033805460ff1916600117905580156100e6576000805461ff00191690555b50565b303b159056fe436f6e747261637420696e7374616e63652068617320616c7265616479206265656e20696e697469616c697a6564a265627a7a72315820e92c7317c0855052327958acc99812d07b496a8b5ee53129ea6d18f8e9d0963d64736f6c63430005110032",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b506004361061002b5760003560e01c80638129fc1c14610030575b600080fd5b61003861003a565b005b600054610100900460ff168061005357506100536100e9565b80610061575060005460ff16155b61009c5760405162461bcd60e51b815260040180806020018281038252602e8152602001806100f0602e913960400191505060405180910390fd5b600054610100900460ff161580156100c7576000805460ff1961ff0019909116610100171660011790555b6033805460ff1916600117905580156100e6576000805461ff00191690555b50565b303b159056fe436f6e747261637420696e7374616e63652068617320616c7265616479206265656e20696e697469616c697a6564a265627a7a72315820e92c7317c0855052327958acc99812d07b496a8b5ee53129ea6d18f8e9d0963d64736f6c63430005110032",
+  "sourceMap": "482:1067:4:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;482:1067:4;;;;;;;",
+  "deployedSourceMap": "482:1067:4:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;482:1067:4;;;;;;;;;;;;;;;;;;;965:78;;;:::i;:::-;;;1024:12:34;;;;;;;;:31;;;1040:15;:13;:15::i;:::-;1024:47;;;-1:-1:-1;1060:11:34;;;;1059:12;1024:47;1016:106;;;;-1:-1:-1;;;1016:106:34;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;1129:19;1152:12;;;;;;1151:13;1170:80;;;;1198:12;:19;;-1:-1:-1;;;;1198:19:34;;;;;1225:18;1213:4;1225:18;;;1170:80;1016:13:4;:20;;-1:-1:-1;;1016:20:4;1032:4;1016:20;;;1264:55:34;;;;1307:5;1292:20;;-1:-1:-1;;1292:20:34;;;1264:55;965:78:4;:::o;1409:498:34:-;1820:4;1864:17;1895:7;1409:498;:::o",
+  "source": "pragma solidity >=0.4.24 <0.7.0;\n\nimport \"@openzeppelin/upgrades/contracts/Initializable.sol\";\n\n\n/**\n * Wrapper around OpenZeppelin's Initializable contract.\n * Exposes initialized state management to ensure logic contract functions cannot be called before initialization.\n * This is needed because OZ's Initializable contract no longer exposes initialized state variable.\n * https://github.com/OpenZeppelin/openzeppelin-sdk/blob/v2.8.0/packages/lib/contracts/Initializable.sol\n */\ncontract InitializableV2 is Initializable {\n    bool private isInitialized;\n\n    string private constant ERROR_NOT_INITIALIZED = \"InitializableV2: Not initialized\";\n\n    /**\n     * @notice wrapper function around parent contract Initializable's `initializable` modifier\n     *      initializable modifier ensures this function can only be called once by each deployed child contract\n     *      sets isInitialized flag to true to which is used by _requireIsInitialized()\n     */\n    function initialize() public initializer {\n        isInitialized = true;\n    }\n\n    /**\n     * @notice Reverts transaction if isInitialized is false. Used by child contracts to ensure\n     *      contract is initialized before functions can be called.\n     */\n    function _requireIsInitialized() internal view {\n        require(isInitialized == true, ERROR_NOT_INITIALIZED);\n    }\n\n    /**\n     * @notice Exposes isInitialized bool var to child contracts with read-only access\n     */\n    function _isInitialized() internal view returns (bool) {\n        return isInitialized;\n    }\n}\n",
+  "sourcePath": "/Users/joey/workspace/audius-protocol/eth-contracts/contracts/InitializableV2.sol",
+  "ast": {
+    "absolutePath": "/Users/joey/workspace/audius-protocol/eth-contracts/contracts/InitializableV2.sol",
+    "exportedSymbols": {
+      "InitializableV2": [
+        5413
+      ]
+    },
+    "id": 5414,
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 5375,
+        "literals": [
+          "solidity",
+          ">=",
+          "0.4",
+          ".24",
+          "<",
+          "0.7",
+          ".0"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "0:32:4"
+      },
+      {
+        "absolutePath": "@openzeppelin/upgrades/contracts/Initializable.sol",
+        "file": "@openzeppelin/upgrades/contracts/Initializable.sol",
+        "id": 5376,
+        "nodeType": "ImportDirective",
+        "scope": 5414,
+        "sourceUnit": 12445,
+        "src": "34:60:4",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "baseContracts": [
+          {
+            "arguments": null,
+            "baseName": {
+              "contractScope": null,
+              "id": 5377,
+              "name": "Initializable",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 12444,
+              "src": "510:13:4",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_Initializable_$12444",
+                "typeString": "contract Initializable"
+              }
+            },
+            "id": 5378,
+            "nodeType": "InheritanceSpecifier",
+            "src": "510:13:4"
+          }
+        ],
+        "contractDependencies": [
+          12444
+        ],
+        "contractKind": "contract",
+        "documentation": "Wrapper around OpenZeppelin's Initializable contract.\nExposes initialized state management to ensure logic contract functions cannot be called before initialization.\nThis is needed because OZ's Initializable contract no longer exposes initialized state variable.\nhttps://github.com/OpenZeppelin/openzeppelin-sdk/blob/v2.8.0/packages/lib/contracts/Initializable.sol",
+        "fullyImplemented": true,
+        "id": 5413,
+        "linearizedBaseContracts": [
+          5413,
+          12444
+        ],
+        "name": "InitializableV2",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "constant": false,
+            "id": 5380,
+            "name": "isInitialized",
+            "nodeType": "VariableDeclaration",
+            "scope": 5413,
+            "src": "530:26:4",
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_bool",
+              "typeString": "bool"
+            },
+            "typeName": {
+              "id": 5379,
+              "name": "bool",
+              "nodeType": "ElementaryTypeName",
+              "src": "530:4:4",
+              "typeDescriptions": {
+                "typeIdentifier": "t_bool",
+                "typeString": "bool"
+              }
+            },
+            "value": null,
+            "visibility": "private"
+          },
+          {
+            "constant": true,
+            "id": 5383,
+            "name": "ERROR_NOT_INITIALIZED",
+            "nodeType": "VariableDeclaration",
+            "scope": 5413,
+            "src": "563:82:4",
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_string_memory",
+              "typeString": "string"
+            },
+            "typeName": {
+              "id": 5381,
+              "name": "string",
+              "nodeType": "ElementaryTypeName",
+              "src": "563:6:4",
+              "typeDescriptions": {
+                "typeIdentifier": "t_string_storage_ptr",
+                "typeString": "string"
+              }
+            },
+            "value": {
+              "argumentTypes": null,
+              "hexValue": "496e697469616c697a61626c6556323a204e6f7420696e697469616c697a6564",
+              "id": 5382,
+              "isConstant": false,
+              "isLValue": false,
+              "isPure": true,
+              "kind": "string",
+              "lValueRequested": false,
+              "nodeType": "Literal",
+              "src": "611:34:4",
+              "subdenomination": null,
+              "typeDescriptions": {
+                "typeIdentifier": "t_stringliteral_11eb0e945f7b3914a3ce34e381d8d381003cd51c1dc0c5660f0dcd734b907851",
+                "typeString": "literal_string \"InitializableV2: Not initialized\""
+              },
+              "value": "InitializableV2: Not initialized"
+            },
+            "visibility": "private"
+          },
+          {
+            "body": {
+              "id": 5392,
+              "nodeType": "Block",
+              "src": "1006:37:4",
+              "statements": [
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "id": 5390,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftHandSide": {
+                      "argumentTypes": null,
+                      "id": 5388,
+                      "name": "isInitialized",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 5380,
+                      "src": "1016:13:4",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_bool",
+                        "typeString": "bool"
+                      }
+                    },
+                    "nodeType": "Assignment",
+                    "operator": "=",
+                    "rightHandSide": {
+                      "argumentTypes": null,
+                      "hexValue": "74727565",
+                      "id": 5389,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": true,
+                      "kind": "bool",
+                      "lValueRequested": false,
+                      "nodeType": "Literal",
+                      "src": "1032:4:4",
+                      "subdenomination": null,
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_bool",
+                        "typeString": "bool"
+                      },
+                      "value": "true"
+                    },
+                    "src": "1016:20:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "id": 5391,
+                  "nodeType": "ExpressionStatement",
+                  "src": "1016:20:4"
+                }
+              ]
+            },
+            "documentation": "@notice wrapper function around parent contract Initializable's `initializable` modifier\n     initializable modifier ensures this function can only be called once by each deployed child contract\n     sets isInitialized flag to true to which is used by _requireIsInitialized()",
+            "id": 5393,
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [
+              {
+                "arguments": null,
+                "id": 5386,
+                "modifierName": {
+                  "argumentTypes": null,
+                  "id": 5385,
+                  "name": "initializer",
+                  "nodeType": "Identifier",
+                  "overloadedDeclarations": [],
+                  "referencedDeclaration": 12419,
+                  "src": "994:11:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_modifier$__$",
+                    "typeString": "modifier ()"
+                  }
+                },
+                "nodeType": "ModifierInvocation",
+                "src": "994:11:4"
+              }
+            ],
+            "name": "initialize",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 5384,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "984:2:4"
+            },
+            "returnParameters": {
+              "id": 5387,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "1006:0:4"
+            },
+            "scope": 5413,
+            "src": "965:78:4",
+            "stateMutability": "nonpayable",
+            "superFunction": null,
+            "visibility": "public"
+          },
+          {
+            "body": {
+              "id": 5403,
+              "nodeType": "Block",
+              "src": "1276:70:4",
+              "statements": [
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "arguments": [
+                      {
+                        "argumentTypes": null,
+                        "commonType": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        },
+                        "id": 5399,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "leftExpression": {
+                          "argumentTypes": null,
+                          "id": 5397,
+                          "name": "isInitialized",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 5380,
+                          "src": "1294:13:4",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_bool",
+                            "typeString": "bool"
+                          }
+                        },
+                        "nodeType": "BinaryOperation",
+                        "operator": "==",
+                        "rightExpression": {
+                          "argumentTypes": null,
+                          "hexValue": "74727565",
+                          "id": 5398,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": true,
+                          "kind": "bool",
+                          "lValueRequested": false,
+                          "nodeType": "Literal",
+                          "src": "1311:4:4",
+                          "subdenomination": null,
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_bool",
+                            "typeString": "bool"
+                          },
+                          "value": "true"
+                        },
+                        "src": "1294:21:4",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        }
+                      },
+                      {
+                        "argumentTypes": null,
+                        "id": 5400,
+                        "name": "ERROR_NOT_INITIALIZED",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 5383,
+                        "src": "1317:21:4",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_string_memory",
+                          "typeString": "string memory"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        },
+                        {
+                          "typeIdentifier": "t_string_memory",
+                          "typeString": "string memory"
+                        }
+                      ],
+                      "id": 5396,
+                      "name": "require",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [
+                        12626,
+                        12627
+                      ],
+                      "referencedDeclaration": 12627,
+                      "src": "1286:7:4",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
+                        "typeString": "function (bool,string memory) pure"
+                      }
+                    },
+                    "id": 5401,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "1286:53:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_tuple$__$",
+                      "typeString": "tuple()"
+                    }
+                  },
+                  "id": 5402,
+                  "nodeType": "ExpressionStatement",
+                  "src": "1286:53:4"
+                }
+              ]
+            },
+            "documentation": "@notice Reverts transaction if isInitialized is false. Used by child contracts to ensure\n     contract is initialized before functions can be called.",
+            "id": 5404,
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "_requireIsInitialized",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 5394,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "1259:2:4"
+            },
+            "returnParameters": {
+              "id": 5395,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "1276:0:4"
+            },
+            "scope": 5413,
+            "src": "1229:117:4",
+            "stateMutability": "view",
+            "superFunction": null,
+            "visibility": "internal"
+          },
+          {
+            "body": {
+              "id": 5411,
+              "nodeType": "Block",
+              "src": "1510:37:4",
+              "statements": [
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "id": 5409,
+                    "name": "isInitialized",
+                    "nodeType": "Identifier",
+                    "overloadedDeclarations": [],
+                    "referencedDeclaration": 5380,
+                    "src": "1527:13:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "functionReturnParameters": 5408,
+                  "id": 5410,
+                  "nodeType": "Return",
+                  "src": "1520:20:4"
+                }
+              ]
+            },
+            "documentation": "@notice Exposes isInitialized bool var to child contracts with read-only access",
+            "id": 5412,
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "_isInitialized",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 5405,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "1478:2:4"
+            },
+            "returnParameters": {
+              "id": 5408,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 5407,
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 5412,
+                  "src": "1504:4:4",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bool",
+                    "typeString": "bool"
+                  },
+                  "typeName": {
+                    "id": 5406,
+                    "name": "bool",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1504:4:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1503:6:4"
+            },
+            "scope": 5413,
+            "src": "1455:92:4",
+            "stateMutability": "view",
+            "superFunction": null,
+            "visibility": "internal"
+          }
+        ],
+        "scope": 5414,
+        "src": "482:1067:4"
+      }
+    ],
+    "src": "0:1550:4"
+  },
+  "legacyAST": {
+    "absolutePath": "/Users/joey/workspace/audius-protocol/eth-contracts/contracts/InitializableV2.sol",
+    "exportedSymbols": {
+      "InitializableV2": [
+        5413
+      ]
+    },
+    "id": 5414,
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 5375,
+        "literals": [
+          "solidity",
+          ">=",
+          "0.4",
+          ".24",
+          "<",
+          "0.7",
+          ".0"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "0:32:4"
+      },
+      {
+        "absolutePath": "@openzeppelin/upgrades/contracts/Initializable.sol",
+        "file": "@openzeppelin/upgrades/contracts/Initializable.sol",
+        "id": 5376,
+        "nodeType": "ImportDirective",
+        "scope": 5414,
+        "sourceUnit": 12445,
+        "src": "34:60:4",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "baseContracts": [
+          {
+            "arguments": null,
+            "baseName": {
+              "contractScope": null,
+              "id": 5377,
+              "name": "Initializable",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 12444,
+              "src": "510:13:4",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_Initializable_$12444",
+                "typeString": "contract Initializable"
+              }
+            },
+            "id": 5378,
+            "nodeType": "InheritanceSpecifier",
+            "src": "510:13:4"
+          }
+        ],
+        "contractDependencies": [
+          12444
+        ],
+        "contractKind": "contract",
+        "documentation": "Wrapper around OpenZeppelin's Initializable contract.\nExposes initialized state management to ensure logic contract functions cannot be called before initialization.\nThis is needed because OZ's Initializable contract no longer exposes initialized state variable.\nhttps://github.com/OpenZeppelin/openzeppelin-sdk/blob/v2.8.0/packages/lib/contracts/Initializable.sol",
+        "fullyImplemented": true,
+        "id": 5413,
+        "linearizedBaseContracts": [
+          5413,
+          12444
+        ],
+        "name": "InitializableV2",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "constant": false,
+            "id": 5380,
+            "name": "isInitialized",
+            "nodeType": "VariableDeclaration",
+            "scope": 5413,
+            "src": "530:26:4",
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_bool",
+              "typeString": "bool"
+            },
+            "typeName": {
+              "id": 5379,
+              "name": "bool",
+              "nodeType": "ElementaryTypeName",
+              "src": "530:4:4",
+              "typeDescriptions": {
+                "typeIdentifier": "t_bool",
+                "typeString": "bool"
+              }
+            },
+            "value": null,
+            "visibility": "private"
+          },
+          {
+            "constant": true,
+            "id": 5383,
+            "name": "ERROR_NOT_INITIALIZED",
+            "nodeType": "VariableDeclaration",
+            "scope": 5413,
+            "src": "563:82:4",
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_string_memory",
+              "typeString": "string"
+            },
+            "typeName": {
+              "id": 5381,
+              "name": "string",
+              "nodeType": "ElementaryTypeName",
+              "src": "563:6:4",
+              "typeDescriptions": {
+                "typeIdentifier": "t_string_storage_ptr",
+                "typeString": "string"
+              }
+            },
+            "value": {
+              "argumentTypes": null,
+              "hexValue": "496e697469616c697a61626c6556323a204e6f7420696e697469616c697a6564",
+              "id": 5382,
+              "isConstant": false,
+              "isLValue": false,
+              "isPure": true,
+              "kind": "string",
+              "lValueRequested": false,
+              "nodeType": "Literal",
+              "src": "611:34:4",
+              "subdenomination": null,
+              "typeDescriptions": {
+                "typeIdentifier": "t_stringliteral_11eb0e945f7b3914a3ce34e381d8d381003cd51c1dc0c5660f0dcd734b907851",
+                "typeString": "literal_string \"InitializableV2: Not initialized\""
+              },
+              "value": "InitializableV2: Not initialized"
+            },
+            "visibility": "private"
+          },
+          {
+            "body": {
+              "id": 5392,
+              "nodeType": "Block",
+              "src": "1006:37:4",
+              "statements": [
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "id": 5390,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftHandSide": {
+                      "argumentTypes": null,
+                      "id": 5388,
+                      "name": "isInitialized",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 5380,
+                      "src": "1016:13:4",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_bool",
+                        "typeString": "bool"
+                      }
+                    },
+                    "nodeType": "Assignment",
+                    "operator": "=",
+                    "rightHandSide": {
+                      "argumentTypes": null,
+                      "hexValue": "74727565",
+                      "id": 5389,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": true,
+                      "kind": "bool",
+                      "lValueRequested": false,
+                      "nodeType": "Literal",
+                      "src": "1032:4:4",
+                      "subdenomination": null,
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_bool",
+                        "typeString": "bool"
+                      },
+                      "value": "true"
+                    },
+                    "src": "1016:20:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "id": 5391,
+                  "nodeType": "ExpressionStatement",
+                  "src": "1016:20:4"
+                }
+              ]
+            },
+            "documentation": "@notice wrapper function around parent contract Initializable's `initializable` modifier\n     initializable modifier ensures this function can only be called once by each deployed child contract\n     sets isInitialized flag to true to which is used by _requireIsInitialized()",
+            "id": 5393,
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [
+              {
+                "arguments": null,
+                "id": 5386,
+                "modifierName": {
+                  "argumentTypes": null,
+                  "id": 5385,
+                  "name": "initializer",
+                  "nodeType": "Identifier",
+                  "overloadedDeclarations": [],
+                  "referencedDeclaration": 12419,
+                  "src": "994:11:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_modifier$__$",
+                    "typeString": "modifier ()"
+                  }
+                },
+                "nodeType": "ModifierInvocation",
+                "src": "994:11:4"
+              }
+            ],
+            "name": "initialize",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 5384,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "984:2:4"
+            },
+            "returnParameters": {
+              "id": 5387,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "1006:0:4"
+            },
+            "scope": 5413,
+            "src": "965:78:4",
+            "stateMutability": "nonpayable",
+            "superFunction": null,
+            "visibility": "public"
+          },
+          {
+            "body": {
+              "id": 5403,
+              "nodeType": "Block",
+              "src": "1276:70:4",
+              "statements": [
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "arguments": [
+                      {
+                        "argumentTypes": null,
+                        "commonType": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        },
+                        "id": 5399,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "leftExpression": {
+                          "argumentTypes": null,
+                          "id": 5397,
+                          "name": "isInitialized",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 5380,
+                          "src": "1294:13:4",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_bool",
+                            "typeString": "bool"
+                          }
+                        },
+                        "nodeType": "BinaryOperation",
+                        "operator": "==",
+                        "rightExpression": {
+                          "argumentTypes": null,
+                          "hexValue": "74727565",
+                          "id": 5398,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": true,
+                          "kind": "bool",
+                          "lValueRequested": false,
+                          "nodeType": "Literal",
+                          "src": "1311:4:4",
+                          "subdenomination": null,
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_bool",
+                            "typeString": "bool"
+                          },
+                          "value": "true"
+                        },
+                        "src": "1294:21:4",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        }
+                      },
+                      {
+                        "argumentTypes": null,
+                        "id": 5400,
+                        "name": "ERROR_NOT_INITIALIZED",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 5383,
+                        "src": "1317:21:4",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_string_memory",
+                          "typeString": "string memory"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        },
+                        {
+                          "typeIdentifier": "t_string_memory",
+                          "typeString": "string memory"
+                        }
+                      ],
+                      "id": 5396,
+                      "name": "require",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [
+                        12626,
+                        12627
+                      ],
+                      "referencedDeclaration": 12627,
+                      "src": "1286:7:4",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
+                        "typeString": "function (bool,string memory) pure"
+                      }
+                    },
+                    "id": 5401,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "1286:53:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_tuple$__$",
+                      "typeString": "tuple()"
+                    }
+                  },
+                  "id": 5402,
+                  "nodeType": "ExpressionStatement",
+                  "src": "1286:53:4"
+                }
+              ]
+            },
+            "documentation": "@notice Reverts transaction if isInitialized is false. Used by child contracts to ensure\n     contract is initialized before functions can be called.",
+            "id": 5404,
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "_requireIsInitialized",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 5394,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "1259:2:4"
+            },
+            "returnParameters": {
+              "id": 5395,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "1276:0:4"
+            },
+            "scope": 5413,
+            "src": "1229:117:4",
+            "stateMutability": "view",
+            "superFunction": null,
+            "visibility": "internal"
+          },
+          {
+            "body": {
+              "id": 5411,
+              "nodeType": "Block",
+              "src": "1510:37:4",
+              "statements": [
+                {
+                  "expression": {
+                    "argumentTypes": null,
+                    "id": 5409,
+                    "name": "isInitialized",
+                    "nodeType": "Identifier",
+                    "overloadedDeclarations": [],
+                    "referencedDeclaration": 5380,
+                    "src": "1527:13:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "functionReturnParameters": 5408,
+                  "id": 5410,
+                  "nodeType": "Return",
+                  "src": "1520:20:4"
+                }
+              ]
+            },
+            "documentation": "@notice Exposes isInitialized bool var to child contracts with read-only access",
+            "id": 5412,
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "_isInitialized",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 5405,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "1478:2:4"
+            },
+            "returnParameters": {
+              "id": 5408,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 5407,
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 5412,
+                  "src": "1504:4:4",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bool",
+                    "typeString": "bool"
+                  },
+                  "typeName": {
+                    "id": 5406,
+                    "name": "bool",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1504:4:4",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1503:6:4"
+            },
+            "scope": 5413,
+            "src": "1455:92:4",
+            "stateMutability": "view",
+            "superFunction": null,
+            "visibility": "internal"
+          }
+        ],
+        "scope": 5414,
+        "src": "482:1067:4"
+      }
+    ],
+    "src": "0:1550:4"
+  },
+  "compiler": {
+    "name": "solc",
+    "version": "0.5.17+commit.d19bba13.Emscripten.clang"
+  },
+  "networks": {},
+  "schemaVersion": "3.1.0",
+  "updatedAt": "2020-12-10T14:59:16.069Z",
+  "networkType": "ethereum",
+  "devdoc": {
+    "methods": {}
+  },
+  "userdoc": {
+    "methods": {
+      "initialize()": {
+        "notice": "wrapper function around parent contract Initializable's `initializable` modifier     initializable modifier ensures this function can only be called once by each deployed child contract     sets isInitialized flag to true to which is used by _requireIsInitialized()"
+      }
+    },
+    "notice": "Wrapper around OpenZeppelin's Initializable contract. Exposes initialized state management to ensure logic contract functions cannot be called before initialization. This is needed because OZ's Initializable contract no longer exposes initialized state variable. https://github.com/OpenZeppelin/openzeppelin-sdk/blob/v2.8.0/packages/lib/contracts/Initializable.sol"
+  }
+}

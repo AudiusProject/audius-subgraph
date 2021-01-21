@@ -1,0 +1,12 @@
+{
+  "audiusToken": "0x3A486e9883CbC716917fC1Bc3940487eC0777209",
+  "governance": "0xf6408b51dcD71DfDbB4C3f391E99c510c2D13CC6",
+  "serviceProviderFactory": "0xeF299c13F7aEF85e2AbD5769d7A15A1Fe7d8Ff43",
+  "serviceTypeManager": "0x730934a199e6BFF052c276340F7207AAF5643333",
+  "delegateManager": "0xa61c0AB2595d8EA20Fe62D3C246272dB541BF020",
+  "claimsManager": "0xf55faf2C5EB2F6314391AF5f177e8faabB51C80d",
+  "staking": "0xC75F316AB442Aa45Ee88799F0D794Cb8Ba79c797",
+  "registry": "0xC4c91e735D836917b026C7D238c6251B6093005B",
+  "blockNumber": "0",
+  "network": "audius_dev"
+}

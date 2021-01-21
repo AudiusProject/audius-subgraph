@@ -1,0 +1,279 @@
+type AudiusNetwork @entity {
+  "ID is set to 1"
+  id: ID!
+
+  # ==================== Addresses ====================
+  "audiusToken address"
+  audiusToken: Bytes
+  "claimsManager address"
+  claimsManagerAddress: Bytes
+  "delegateManager address"
+  delegateManagerAddress: Bytes
+  "governance address"
+  governanceAddress: Bytes
+  "registry address"
+  registry: Bytes
+  "serviceProviderFactory address"
+  serviceProviderFactoryAddress: Bytes
+  "serviceTypeManager address"
+  serviceTypeManagerAddress: Bytes
+  "staking address"
+  stakingAddress: Bytes
+
+  # ==================== Staking global aggregate values ====================
+  "Total amount of $AUDIO staked"
+  totalTokensStaked: BigInt
+  "Total tokens that are settled and claimable"
+  totalTokensClaimable: BigInt
+  "Total tokens that are currently locked or withdrawable in the network from unstaking/undelegating"
+  totalTokensLocked: BigInt
+  "Total delegated tokens in the protocol"
+  totalDelegatedTokens: BigInt
+
+  # ==================== Delegate global aggregate values ====================
+  "The max number of delegators per service provider"
+  maxDelegators: BigInt
+  "The minimum amount needed to delegate"
+  minDelegationAmount: BigInt
+  ""
+  undelegateLockupDuration: BigInt
+  ""
+  removeDelegatorLockupDuration: BigInt
+  ""
+  removeDelegatorEvalDuration: BigInt
+
+  # ==================== Service Provider Factory globals ====================
+  ""
+  decreaseStakeLockupDuration: BigInt
+  ""
+  updateDeployerCutLockupDuration: BigInt
+
+
+  # ==================== Claims Manager globals ====================
+  ""
+  fundingRoundBlockDiff: BigInt
+  ""
+  fundingAmount: BigInt
+  ""
+  recurringCommunityFundingAmount: BigInt
+  "address"
+  communityPoolAddress: Bytes
+
+  # ==================== Governance globals ====================
+  ""
+  votingQuorumPercent: BigInt
+  ""
+  votingPeriod: BigInt
+  ""
+  executionDelay: BigInt
+  ""
+  maxInProgressProposals: BigInt
+  ""
+  guardianAddress: Bytes
+
+  # ==================== Helper for lockup event ====================
+  ""
+  requestCount: BigInt!
+}
+
+type ServiceType @entity {
+  "The type of the service ie. creator-node"
+  id: ID!
+  "Is the service is removed of not"
+  isValid: Boolean!
+  "Minimum Token Stake to run the service"
+  minStake: BigInt! 
+  "Max Token Stake to run the service"
+  maxStake: BigInt!
+  versions: [ServiceTypeVersion!]! @derivedFrom(field: "serviceType")
+  # activeCount: Int!
+}
+
+type ServiceTypeVersion @entity {
+  id: ID!
+  serviceType: ServiceType!
+  serviceVersion: String!
+  blockNumber: BigInt!
+}
+
+
+type ServiceNode @entity {
+  id: ID!
+  owner: User!
+  type: ServiceType!
+  endpoint: String!
+  delegateOwnerWallet: Bytes!
+  createdAt: Int!
+  isRegistered: Boolean!
+}
+
+type User @entity {
+  "Eth address of User"
+  id: ID!
+
+  totalClaimableAmount: BigInt # The total staked/delegated minus pending decrease stake/delegation
+  claimableStakeAmount: BigInt # The total staked minus pending decrease stake
+  claimableDelegationAmount: BigInt # The total delegated minus pending decrease delegation
+  stakeAmount: BigInt # The total staked
+  delegationAmount: BigInt # The total delegated
+
+  validBounds: Boolean
+  deployerCut: BigInt
+  services: [ServiceNode!] @derivedFrom(field: "owner")
+
+  minAccountStake: BigInt
+  maxAccountStake: BigInt
+
+  delegateTo: [Delegate!] @derivedFrom(field: "toUser")
+  delegateFrom: [Delegate!] @derivedFrom(field: "fromUser")
+
+  # Keep track of pending events
+  pendingDecreaseStake: DecreaseStakeEvent  
+  pendingRemoveDelegator: RemoveDelegatorEvent
+  pendingUpdateDeployerCut: UpdateDeployerCutEvent
+  pendingUndelegateStake: UndelegateStakeEvent  
+
+
+  createdAt: BigInt!
+}
+
+type Delegate @entity {
+  id: ID!
+  amount: BigInt!
+  fromUser: User!
+  toUser: User!
+}
+
+# Event Mappings
+enum LockupStatus {
+  Requested
+  Cancelled
+  Evaluated
+}
+
+interface LockupEvent {
+  id: ID!
+  status: LockupStatus!
+  owner: User!
+  expiryBlock: BigInt!
+  createdBlockNumber: BigInt!
+  endedBlockNumber: BigInt!
+}
+
+type DecreaseStakeEvent implements LockupEvent @entity {
+  id: ID!
+  status: LockupStatus!
+  owner: User!
+  expiryBlock: BigInt!
+  createdBlockNumber: BigInt!
+  endedBlockNumber: BigInt!
+
+  decreaseAmount: BigInt!
+  newStakeAmount: BigInt
+}
+
+type UpdateDeployerCutEvent implements LockupEvent @entity {
+  id: ID!
+  status: LockupStatus!
+  owner: User!
+  expiryBlock: BigInt!
+  createdBlockNumber: BigInt!
+  endedBlockNumber: BigInt!
+
+  updatedCut: BigInt!
+}
+
+type RemoveDelegatorEvent implements LockupEvent @entity {
+  id: ID!
+  status: LockupStatus!
+  owner: User!
+  expiryBlock: BigInt!
+  createdBlockNumber: BigInt!
+  endedBlockNumber: BigInt!
+
+  delegator: User!
+}
+
+type UndelegateStakeEvent implements LockupEvent @entity {
+  id: ID!
+  status: LockupStatus!
+  owner: User!
+  expiryBlock: BigInt!
+  createdBlockNumber: BigInt!
+  endedBlockNumber: BigInt!
+
+  serviceProvider: User!
+  amount: BigInt!
+}
+
+# Regular events
+type IncreasedStakeEvent @entity {
+  id: ID!
+  owner: User!
+  newStakeAmount: BigInt!
+  increaseAmount: BigInt!
+  blockNumber: BigInt!
+}
+
+type IncreaseDelegatedStakeEvent @entity {
+  id: ID!
+  delegator: User!
+  serviceProvider: User!
+  increaseAmount: BigInt!
+  createdAt: BigInt!
+}
+
+type ClaimEvent @entity {
+  id: ID!
+  createdAt: BigInt!
+  claimer: User!
+  rewards: BigInt!
+  newTotal: BigInt!
+}
+
+type SlashEvent @entity {
+  id: ID!
+  createdAt: BigInt!
+  target: User!
+  amount: BigInt!
+  newTotal: BigInt!
+}
+
+type ClaimRound @entity {
+  "The round number"
+  id: ID!
+  fundAmount: BigInt!
+  blockNumber: BigInt!
+}
+
+type ClaimProcessedEvent @entity {
+  id: ID!
+  rewards: BigInt!
+  claimer: User!
+  oldTotal: BigInt!
+  newTotal: BigInt!
+  blockNumber: BigInt!
+}
+
+type RegisteredServiceProviderEvent @entity {
+  id: ID!
+  type: ServiceType!
+  spId: BigInt!
+  node: ServiceNode!
+  owner: User!
+  endpoint: String!
+  stakeAmount: BigInt!
+  blockNumber: BigInt!
+}
+
+type DeregisteredServiceProviderEvent @entity {
+  id: ID!
+  type: ServiceType!
+  spId: BigInt!
+  node: ServiceNode!
+  owner: User!
+  endpoint: String!
+  unstakeAmount: BigInt!
+  blockNumber: BigInt!
+}
+
