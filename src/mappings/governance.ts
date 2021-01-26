@@ -71,7 +71,8 @@ export function handleVotingQuorumPercentUpdated(event: VotingQuorumPercentUpdat
   audiusNetwork.save()
 }
 export function handleMaxInProgressProposalsUpdated(event: MaxInProgressProposalsUpdated): void {
-  let audiusNetwork = AudiusNetwork.load('1')
-  audiusNetwork.maxInProgressProposals = event.params._newMaxInProgressProposals
-  audiusNetwork.save()
+  // TODO: cast uint256 as uint16
+  // let audiusNetwork = AudiusNetwork.load('1')
+  // audiusNetwork.maxInProgressProposals = event.params._newMaxInProgressProposals as 
+  // audiusNetwork.save()
 }

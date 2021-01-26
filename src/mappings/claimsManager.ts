@@ -12,6 +12,9 @@ import {
   RecurringCommunityFundingAmountUpdated,
   CommunityPoolAddressUpdated
 } from '../types/ClaimsManager/ClaimsManager'
+import {
+  AudiusNetwork
+} from '../types/schema'
 
 // export function handleUpgraded(event: Upgraded): void {
 //   // Entities can be loaded from the store using a string ID; this ID
@@ -80,7 +83,6 @@ export function handleServiceProviderFactoryAddressUpdated(event: ServiceProvide
   return
 }
 export function handleDelegateManagerAddressUpdated(event: DelegateManagerAddressUpdated): void {
-  return
 }
 export function handleRecurringCommunityFundingAmountUpdated(event: RecurringCommunityFundingAmountUpdated): void {
   return

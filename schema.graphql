@@ -4,7 +4,7 @@ type AudiusNetwork @entity {
 
   # ==================== Addresses ====================
   "audiusToken address"
-  audiusToken: Bytes
+  audiusTokenAddress: Bytes
   "claimsManager address"
   claimsManagerAddress: Bytes
   "delegateManager address"
@@ -19,6 +19,16 @@ type AudiusNetwork @entity {
   serviceTypeManagerAddress: Bytes
   "staking address"
   stakingAddress: Bytes
+  "registry address"
+  registryAddress: Bytes
+
+  # ==================== Token ====================
+  "Total supply of $AUDIO"
+  totalSupply: BigInt!
+  "Total amount of $AUDIO minted"
+  totalAUDIOMinted: BigInt!
+  "Total amount of $AUDIO burned"
+  totalAUDIOBurned: BigInt!
 
   # ==================== Staking global aggregate values ====================
   "Total amount of $AUDIO staked"
@@ -43,9 +53,9 @@ type AudiusNetwork @entity {
   removeDelegatorEvalDuration: BigInt
 
   # ==================== Service Provider Factory globals ====================
-  ""
+  "Number of blocks a decrease stake request is in lockup before evaluation is allowed"
   decreaseStakeLockupDuration: BigInt
-  ""
+  "Number of blocks an update deployer cut request is in lockup before evaluation is allowed"
   updateDeployerCutLockupDuration: BigInt
 
 
@@ -67,7 +77,7 @@ type AudiusNetwork @entity {
   ""
   executionDelay: BigInt
   ""
-  maxInProgressProposals: BigInt
+  maxInProgressProposals: Int
   ""
   guardianAddress: Bytes
 
@@ -79,7 +89,7 @@ type AudiusNetwork @entity {
 type ServiceType @entity {
   "The type of the service ie. creator-node"
   id: ID!
-  "Is the service is removed of not"
+  "If the service is removed of not"
   isValid: Boolean!
   "Minimum Token Stake to run the service"
   minStake: BigInt! 
@@ -111,11 +121,24 @@ type User @entity {
   "Eth address of User"
   id: ID!
 
-  totalClaimableAmount: BigInt # The total staked/delegated minus pending decrease stake/delegation
-  claimableStakeAmount: BigInt # The total staked minus pending decrease stake
-  claimableDelegationAmount: BigInt # The total delegated minus pending decrease delegation
-  stakeAmount: BigInt # The total staked
-  delegationAmount: BigInt # The total delegated
+  "Token balance"
+  balance: BigInt!
+
+  "The total staked/delegated minus pending decrease stake/delegation"
+  totalClaimableAmount: BigInt!
+  "The total staked minus pending decrease stake"
+  claimableStakeAmount: BigInt!
+  "The total delegation received from other users minus their pending decrease delegation"
+  claimableDelegationReceivedAmount: BigInt!
+  "The total delegation sent to other users minus my own pending decrease delegation"
+  claimableDelegationSentAmount: BigInt!
+  "The total staked"
+  stakeAmount: BigInt!
+  "The total delegated"
+  delegationReceivedAmount: BigInt!
+  "The total delegation sent"
+  delegationSentAmount: BigInt!
+
 
   validBounds: Boolean
   deployerCut: BigInt
@@ -124,8 +147,8 @@ type User @entity {
   minAccountStake: BigInt
   maxAccountStake: BigInt
 
-  delegateTo: [Delegate!] @derivedFrom(field: "toUser")
-  delegateFrom: [Delegate!] @derivedFrom(field: "fromUser")
+  delegateTo: [Delegate!] @derivedFrom(field: "fromUser")
+  delegateFrom: [Delegate!] @derivedFrom(field: "toUser")
 
   # Keep track of pending events
   pendingDecreaseStake: DecreaseStakeEvent  
@@ -139,6 +162,7 @@ type User @entity {
 
 type Delegate @entity {
   id: ID!
+  claimableAmount: BigInt!
   amount: BigInt!
   fromUser: User!
   toUser: User!
@@ -157,7 +181,7 @@ interface LockupEvent {
   owner: User!
   expiryBlock: BigInt!
   createdBlockNumber: BigInt!
-  endedBlockNumber: BigInt!
+  endedBlockNumber: BigInt
 }
 
 type DecreaseStakeEvent implements LockupEvent @entity {
@@ -166,7 +190,7 @@ type DecreaseStakeEvent implements LockupEvent @entity {
   owner: User!
   expiryBlock: BigInt!
   createdBlockNumber: BigInt!
-  endedBlockNumber: BigInt!
+  endedBlockNumber: BigInt
 
   decreaseAmount: BigInt!
   newStakeAmount: BigInt
@@ -178,7 +202,7 @@ type UpdateDeployerCutEvent implements LockupEvent @entity {
   owner: User!
   expiryBlock: BigInt!
   createdBlockNumber: BigInt!
-  endedBlockNumber: BigInt!
+  endedBlockNumber: BigInt
 
   updatedCut: BigInt!
 }
@@ -189,7 +213,7 @@ type RemoveDelegatorEvent implements LockupEvent @entity {
   owner: User!
   expiryBlock: BigInt!
   createdBlockNumber: BigInt!
-  endedBlockNumber: BigInt!
+  endedBlockNumber: BigInt
 
   delegator: User!
 }
@@ -200,7 +224,7 @@ type UndelegateStakeEvent implements LockupEvent @entity {
   owner: User!
   expiryBlock: BigInt!
   createdBlockNumber: BigInt!
-  endedBlockNumber: BigInt!
+  endedBlockNumber: BigInt
 
   serviceProvider: User!
   amount: BigInt!
@@ -220,7 +244,7 @@ type IncreaseDelegatedStakeEvent @entity {
   delegator: User!
   serviceProvider: User!
   increaseAmount: BigInt!
-  createdAt: BigInt!
+  blockNumber: BigInt!
 }
 
 type ClaimEvent @entity {
@@ -229,6 +253,7 @@ type ClaimEvent @entity {
   claimer: User!
   rewards: BigInt!
   newTotal: BigInt!
+  blockNumber: BigInt!
 }
 
 type SlashEvent @entity {

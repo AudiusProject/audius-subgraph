@@ -1,12 +1,12 @@
 {
-  "audiusToken": "0x3A486e9883CbC716917fC1Bc3940487eC0777209",
-  "governance": "0xf6408b51dcD71DfDbB4C3f391E99c510c2D13CC6",
-  "serviceProviderFactory": "0xeF299c13F7aEF85e2AbD5769d7A15A1Fe7d8Ff43",
-  "serviceTypeManager": "0x730934a199e6BFF052c276340F7207AAF5643333",
-  "delegateManager": "0xa61c0AB2595d8EA20Fe62D3C246272dB541BF020",
-  "claimsManager": "0xf55faf2C5EB2F6314391AF5f177e8faabB51C80d",
-  "staking": "0xC75F316AB442Aa45Ee88799F0D794Cb8Ba79c797",
-  "registry": "0xC4c91e735D836917b026C7D238c6251B6093005B",
+  "audiusToken": "0x0E395B89de9aD62B82B660da9508Cd1f941CFB3d",
+  "governance": "0xE29f55D1Cd5c97A39c4AD6057c6DeAF01Db61763",
+  "serviceProviderFactory": "0xD698e9502a828FE6CeC1b5577EeD7FEdf7410a5d",
+  "serviceTypeManager": "0x9b356f3e7Bac3EcdC9F0ad9CCB0d34142ebA9729",
+  "delegateManager": "0x790C8D47e3F559eF4cbB85d0401Bac94F55BC39F",
+  "claimsManager": "0xf0C959ebba9Bee2233c6A2FE68746a5ba6A6d201",
+  "staking": "0x6bBB9f2f6F218510e5CBBbaddA901498cb930D24",
+  "registry": "0x3E5e3E3496508c69b77FC94f5459C5100eB32fb6",
   "blockNumber": "0",
   "network": "audius_dev"
 }

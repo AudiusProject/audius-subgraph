@@ -3,7 +3,8 @@ import {
   User,
   ServiceNode,
   ServiceType,
-  AudiusNetwork
+  AudiusNetwork,
+  Delegate
 } from '../types/schema'
 
 export function createOrLoadUser(
@@ -17,10 +18,12 @@ export function createOrLoadUser(
     user.deployerCut = BigInt.fromI32(0)
     user.totalClaimableAmount = BigInt.fromI32(0)
     user.claimableStakeAmount = BigInt.fromI32(0)
-    user.claimableDelegationAmount = BigInt.fromI32(0)
+    user.claimableDelegationReceivedAmount = BigInt.fromI32(0)
+    user.claimableDelegationSentAmount = BigInt.fromI32(0)
     user.stakeAmount = BigInt.fromI32(0)
-    user.delegationAmount = BigInt.fromI32(0)
-  
+    user.delegationReceivedAmount = BigInt.fromI32(0)
+    user.delegationSentAmount = BigInt.fromI32(0)
+    user.balance = BigInt.fromI32(0)
     user.save()
   }
 
@@ -41,10 +44,31 @@ export function createOrLoadAudiusNetwork(): AudiusNetwork {
   if (audiusNetwork == null) {
     audiusNetwork = new AudiusNetwork('1')
     audiusNetwork.requestCount = BigInt.fromI32(0)
+    audiusNetwork.totalSupply = BigInt.fromI32(0)
+    audiusNetwork.totalAUDIOMinted = BigInt.fromI32(0)
+    audiusNetwork.totalAUDIOBurned = BigInt.fromI32(0)
     audiusNetwork.save()
   }
 
   return audiusNetwork as AudiusNetwork
+}
+
+
+export function createOrLoadDelegate(
+  serviceProvider: Bytes,
+  delegator: Bytes
+): Delegate {
+  let id = serviceProvider.toHexString() + delegator.toHexString()
+  let delegate = Delegate.load(id)
+  if (delegate == null) {
+    delegate = new Delegate(id)
+    delegate.amount = BigInt.fromI32(0)
+    delegate.claimableAmount = BigInt.fromI32(0)
+    delegate.fromUser = delegator.toHexString()
+    delegate.toUser = serviceProvider.toHexString()
+    delegate.save()
+  }
+  return delegate as Delegate
 }
 
 

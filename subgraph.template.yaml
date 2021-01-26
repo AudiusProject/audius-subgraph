@@ -177,10 +177,31 @@ dataSources:
       apiVersion: 0.0.4
       language: wasm/assemblyscript
       entities:
+        - AudiusToken
+        - ClaimsManager
+        - DelegateManager
+        - Governance
         - Registry
+        - ServiceProviderFactory
+        - ServiceTypeManager
+        - Staking
       abis:
+        - name: AudiusToken
+          file: ./abis/AudiusToken.json
+        - name: ClaimsManager
+          file: ./abis/ClaimsManager.json
+        - name: DelegateManager
+          file: ./abis/DelegateManager.json
+        - name: Governance
+          file: ./abis/Governance.json
         - name: Registry
           file: ./abis/Registry.json
+        - name: ServiceProviderFactory
+          file: ./abis/ServiceProviderFactory.json
+        - name: ServiceTypeManager
+          file: ./abis/ServiceTypeManager.json
+        - name: Staking
+          file: ./abis/Staking.json
       eventHandlers:
         - event: ContractAdded(indexed bytes32,indexed address)
           handler: handleContractAdded

@@ -31,21 +31,29 @@ import {
 import { getServiceId, createOrLoadUser, getRequestCountId } from './helpers'
 
 export function handleRegisteredServiceProvider(event: RegisteredServiceProvider): void {
+  // Create the service node
   let id = getServiceId(event.params._serviceType.toString(), event.params._spID.toString())
   let serviceNode = new ServiceNode(id)
   serviceNode.type = event.params._serviceType.toString()
   serviceNode.endpoint = event.params._endpoint
   let user = createOrLoadUser(event.params._owner, event.block.timestamp)
 
+  // Query the ServiceProviderFactory contract for extra data
   let serviceProviderContract = ServiceProviderFactory.bind(event.address)
   let serviceEndpointInfo = serviceProviderContract.getServiceEndpointInfo(event.params._serviceType, event.params._spID)
   serviceNode.delegateOwnerWallet = serviceEndpointInfo.value3
   serviceNode.owner = user.id
   serviceNode.isRegistered = true
   serviceNode.createdAt = event.block.timestamp.toI32()
-
   serviceNode.save()
 
+  // Update the user Stake Amount 
+  user.stakeAmount = user.stakeAmount.plus(event.params._stakeAmount)
+  user.claimableStakeAmount = user.claimableStakeAmount.plus(event.params._stakeAmount) 
+  user.totalClaimableAmount = user.claimableStakeAmount.plus(user.claimableDelegationSentAmount)
+  user.save()
+
+  // Create the event
   let registerEvent = new RegisteredServiceProviderEvent(id)
   registerEvent.type = event.params._serviceType.toString()
   registerEvent.endpoint = event.params._endpoint
@@ -55,18 +63,17 @@ export function handleRegisteredServiceProvider(event: RegisteredServiceProvider
   registerEvent.node = serviceNode.id
   registerEvent.blockNumber = event.block.number
   registerEvent.save()
-
-  // TODO: update user stake balance
-
 }
 
 export function handleDeregisteredServiceProvider(event: DeregisteredServiceProvider): void {
+  // Update the service node to be deregistered
   let id = getServiceId(event.params._serviceType.toString(), event.params._spID.toString())
   let serviceNode = ServiceNode.load(id)
   if (serviceNode === null) return
   serviceNode.isRegistered = false
   serviceNode.save()
 
+  // Create the event
   let deregisterEvent = new DeregisteredServiceProviderEvent(id)
   deregisterEvent.type = event.params._serviceType.toString()
   deregisterEvent.endpoint = event.params._endpoint
@@ -76,16 +83,17 @@ export function handleDeregisteredServiceProvider(event: DeregisteredServiceProv
   deregisterEvent.node = serviceNode.id
   deregisterEvent.blockNumber = event.block.number
   deregisterEvent.save()
-
-  // TODO: update user stake balance
-
 }
 
 export function handleIncreasedStake(event: IncreasedStake): void {
+  // Update the user stake amount
   let user = createOrLoadUser(event.params._owner, event.block.timestamp)
+  user.claimableStakeAmount = event.params._newStakeAmount.minus(user.stakeAmount.minus(user.claimableStakeAmount))
+  user.totalClaimableAmount = user.claimableStakeAmount.plus(user.claimableDelegationSentAmount)
   user.stakeAmount = event.params._newStakeAmount
   user.save()
 
+  // Create the event
   let id = event.transaction.from.toHex()
   let increaseStakeEvent = new IncreasedStakeEvent(id)
   increaseStakeEvent.owner = user.id
@@ -210,6 +218,7 @@ export function handleDelegateOwnerWalletUpdated(event: DelegateOwnerWalletUpdat
     return
   }
   serviceNode.delegateOwnerWallet = event.params._updatedWallet
+
   serviceNode.save()
 }
 
