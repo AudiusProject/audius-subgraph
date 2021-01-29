@@ -135,23 +135,59 @@ export function handleProposalVoteUpdated(event: ProposalVoteUpdated): void {
 }
 
 export function handleProposalOutcomeEvaluated(event: ProposalOutcomeEvaluated): void {
-  // TODO: Figure this out!
-  return
+  let proposalId = event.params._proposalId.toString()
+  let proposal = Proposal.load(proposalId)
+  // TODO: Update proposal
+
+  let eventId = event.transaction.from.toHex()
+  let proposalOutcomeEvaluatedEvent = new ProposalOutcomeEvaluatedEvent(eventId)
+  proposalOutcomeEvaluatedEvent.proposal = proposal.id
+  proposalOutcomeEvaluatedEvent.outcome = event.params._outcome
+  proposalOutcomeEvaluatedEvent.voteMagnitudeYes = event.params._voteMagnitudeYes
+  proposalOutcomeEvaluatedEvent.voteMagnitudeNo = event.params._voteMagnitudeNo
+  proposalOutcomeEvaluatedEvent.numVotes = event.params._numVotes
+  proposalOutcomeEvaluatedEvent.blockNumber = event.block.number
+  proposalOutcomeEvaluatedEvent.save()
 }
 
 export function handleProposalTransactionExecuted(event: ProposalTransactionExecuted): void {
-  // TODO: Figure this out!
-  return
-}
+  let proposalId = event.params._proposalId.toString()
+  let proposal = Proposal.load(proposalId)
+  // TODO: Update proposal
 
-export function handleGuardianTransactionExecuted(event: GuardianTransactionExecuted): void {
-  // TODO: Figure this out!
-  return
+
+  let eventId = event.transaction.from.toHex()
+  let proposalTransactionExecutedEvent = new ProposalTransactionExecutedEvent(eventId)
+  proposalTransactionExecutedEvent.proposal = proposal.id
+  proposalTransactionExecutedEvent.success = event.params._success
+  proposalTransactionExecutedEvent.returnData = event.params._returnData
+  proposalTransactionExecutedEvent.blockNumber = event.block.number
+  proposalTransactionExecutedEvent.save()
 }
 
 export function handleProposalVetoed(event: ProposalVetoed): void {
-  // TODO: Figure this out!
-  return
+  let proposalId = event.params._proposalId.toString()
+  let proposal = Proposal.load(proposalId)
+  // TODO: Update proposal
+
+
+  let eventId = event.transaction.from.toHex()
+  let proposalVetoedEvent = new ProposalVetoedEvent(eventId)
+  proposalVetoedEvent.proposal = proposal.id
+  proposalVetoedEvent.blockNumber = event.block.number
+  proposalVetoedEvent.save()
+}
+
+export function handleGuardianTransactionExecuted(event: GuardianTransactionExecuted): void {
+  let eventId = event.transaction.from.toHex()
+  let guardianTransactionExecutedEvent = new GuardianTransactionExecutedEvent(eventId)
+  guardianTransactionExecutedEvent.targetContractAddress = event.params._targetContractAddress
+  guardianTransactionExecutedEvent.callValue = event.params._callValue
+  guardianTransactionExecutedEvent.functionSignature = event.params._functionSignature.toString()
+  guardianTransactionExecutedEvent.callData = event.params._callData
+  guardianTransactionExecutedEvent.returnData = event.params._returnData
+  guardianTransactionExecutedEvent.blockNumber = event.block.number
+  guardianTransactionExecutedEvent.save()
 }
 
 export function handleRegistryAddressUpdated(event: RegistryAddressUpdated): void {

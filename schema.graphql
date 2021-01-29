@@ -84,6 +84,21 @@ type AudiusNetwork @entity {
   # ==================== Helper for lockup event ====================
   ""
   requestCount: BigInt!
+
+  temp1: BigInt
+  temp2: BigInt
+  temp3: BigInt
+  temp4: BigInt
+  temp5: BigInt
+  prevStaked: BigInt
+  newStake: BigInt
+  delegationReceivedAmount: BigInt
+  totalStakedAmoun: BigInt
+  blkNum: BigInt
+  temp6: Boolean
+  tempUser: String
+
+  totalStaked: BigInt!
 }
 
 type ServiceType @entity {

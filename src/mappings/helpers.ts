@@ -52,6 +52,8 @@ export function createOrLoadAudiusNetwork(): AudiusNetwork {
     audiusNetwork.totalTokensClaimable = BigInt.fromI32(0)
     audiusNetwork.totalTokensLocked = BigInt.fromI32(0)
     audiusNetwork.totalTokensDelegated = BigInt.fromI32(0)
+    audiusNetwork.temp6 = false 
+    audiusNetwork.totalStaked = BigInt.fromI32(0)
 
     audiusNetwork.save()
   }
