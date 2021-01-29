@@ -24,6 +24,7 @@ export function createOrLoadUser(
     user.delegationReceivedAmount = BigInt.fromI32(0)
     user.delegationSentAmount = BigInt.fromI32(0)
     user.balance = BigInt.fromI32(0)
+    user.hasStakeOrDelegation = false
     user.save()
   }
 
@@ -47,6 +48,11 @@ export function createOrLoadAudiusNetwork(): AudiusNetwork {
     audiusNetwork.totalSupply = BigInt.fromI32(0)
     audiusNetwork.totalAUDIOMinted = BigInt.fromI32(0)
     audiusNetwork.totalAUDIOBurned = BigInt.fromI32(0)
+    audiusNetwork.totalTokensStaked = BigInt.fromI32(0)
+    audiusNetwork.totalTokensClaimable = BigInt.fromI32(0)
+    audiusNetwork.totalTokensLocked = BigInt.fromI32(0)
+    audiusNetwork.totalTokensDelegated = BigInt.fromI32(0)
+
     audiusNetwork.save()
   }
 
@@ -79,4 +85,14 @@ export function getRequestCountId(): string {
   audiusNetwork.save()
 
   return updatedCount.toString()
+}
+
+export function checkUserStakeDelegation(user: User): void {
+  if (user.delegationReceivedAmount.le(BigInt.fromI32(0)) && user.totalClaimableAmount.le(BigInt.fromI32(0))) {
+    user.hasStakeOrDelegation = false
+  }
+}
+
+export function getVoteId(proposalId: string, userId: string): string {
+  return proposalId + '::' + userId
 }

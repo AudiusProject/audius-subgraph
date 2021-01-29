@@ -39,9 +39,15 @@ dataSources:
       language: wasm/assemblyscript
       entities:
         - ClaimsManager
+        - DelegateManager
+        - Staking
       abis:
         - name: ClaimsManager
           file: ./abis/ClaimsManager.json
+        - name: DelegateManager
+          file: ./abis/DelegateManager.json
+        - name: Staking
+          file: ./abis/Staking.json
       eventHandlers:
         - event: RoundInitiated(indexed uint256,indexed uint256,indexed uint256)
           handler: handleRoundInitiated
@@ -80,9 +86,12 @@ dataSources:
       language: wasm/assemblyscript
       entities:
         - DelegateManager
+        - Staking
       abis:
         - name: DelegateManager
           file: ./abis/DelegateManager.json
+        - name: Staking
+          file: ./abis/Staking.json
       eventHandlers:
         - event: IncreaseDelegatedStake(indexed address,indexed address,indexed uint256)
           handler: handleIncreaseDelegatedStake

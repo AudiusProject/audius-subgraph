@@ -28,7 +28,7 @@ import {
   UpdateDeployerCutEvent,
   DecreaseStakeEvent
 } from '../types/schema'
-import { getServiceId, createOrLoadUser, getRequestCountId } from './helpers'
+import { getServiceId, createOrLoadUser, getRequestCountId, checkUserStakeDelegation } from './helpers'
 
 export function handleRegisteredServiceProvider(event: RegisteredServiceProvider): void {
   // Create the service node
@@ -42,15 +42,18 @@ export function handleRegisteredServiceProvider(event: RegisteredServiceProvider
   let serviceProviderContract = ServiceProviderFactory.bind(event.address)
   let serviceEndpointInfo = serviceProviderContract.getServiceEndpointInfo(event.params._serviceType, event.params._spID)
   serviceNode.delegateOwnerWallet = serviceEndpointInfo.value3
+  serviceNode.spId = event.params._spID
   serviceNode.owner = user.id
   serviceNode.isRegistered = true
   serviceNode.createdAt = event.block.timestamp.toI32()
   serviceNode.save()
 
-  // Update the user Stake Amount 
-  user.stakeAmount = user.stakeAmount.plus(event.params._stakeAmount)
-  user.claimableStakeAmount = user.claimableStakeAmount.plus(event.params._stakeAmount) 
+  // Update the user Stake Amount
+  let addedStake = event.params._stakeAmount.minus(user.stakeAmount).minus(user.delegationReceivedAmount)
+  user.stakeAmount = user.stakeAmount.plus(addedStake)
+  user.claimableStakeAmount = user.claimableStakeAmount.plus(addedStake) 
   user.totalClaimableAmount = user.claimableStakeAmount.plus(user.claimableDelegationSentAmount)
+  user.hasStakeOrDelegation = true
   user.save()
 
   // Create the event
@@ -63,6 +66,12 @@ export function handleRegisteredServiceProvider(event: RegisteredServiceProvider
   registerEvent.node = serviceNode.id
   registerEvent.blockNumber = event.block.number
   registerEvent.save()
+
+  // Update Global stake values
+  let audiusNetwork = AudiusNetwork.load('1')
+  audiusNetwork.totalTokensClaimable = audiusNetwork.totalTokensClaimable.plus(addedStake)
+  audiusNetwork.totalTokensStaked = audiusNetwork.totalTokensStaked.plus(addedStake)
+  audiusNetwork.save()
 }
 
 export function handleDeregisteredServiceProvider(event: DeregisteredServiceProvider): void {
@@ -88,9 +97,10 @@ export function handleDeregisteredServiceProvider(event: DeregisteredServiceProv
 export function handleIncreasedStake(event: IncreasedStake): void {
   // Update the user stake amount
   let user = createOrLoadUser(event.params._owner, event.block.timestamp)
-  user.claimableStakeAmount = event.params._newStakeAmount.minus(user.stakeAmount.minus(user.claimableStakeAmount))
-  user.totalClaimableAmount = user.claimableStakeAmount.plus(user.claimableDelegationSentAmount)
+  let updateAmount = event.params._newStakeAmount.minus(user.stakeAmount)
   user.stakeAmount = event.params._newStakeAmount
+  user.claimableStakeAmount = user.claimableStakeAmount.plus(updateAmount)
+  user.totalClaimableAmount = user.claimableStakeAmount.plus(user.claimableDelegationSentAmount)
   user.save()
 
   // Create the event
@@ -101,6 +111,12 @@ export function handleIncreasedStake(event: IncreasedStake): void {
   increaseStakeEvent.increaseAmount = event.params._increaseAmount
   increaseStakeEvent.blockNumber = event.block.number
   increaseStakeEvent.save()
+
+  // Update Global stake values
+  let audiusNetwork = AudiusNetwork.load('1')
+  audiusNetwork.totalTokensClaimable = audiusNetwork.totalTokensClaimable.plus(event.params._increaseAmount)
+  audiusNetwork.totalTokensStaked = audiusNetwork.totalTokensStaked.plus(event.params._increaseAmount)
+  audiusNetwork.save()
 }
 
 export function handleDecreaseStakeRequested(event: DecreaseStakeRequested): void {
@@ -119,6 +135,12 @@ export function handleDecreaseStakeRequested(event: DecreaseStakeRequested): voi
   user.totalClaimableAmount = user.totalClaimableAmount.minus(event.params._decreaseAmount)
   user.claimableStakeAmount = user.claimableStakeAmount.minus(event.params._decreaseAmount)
   user.save()
+
+  // Update Global stake values
+  let audiusNetwork = AudiusNetwork.load('1')
+  audiusNetwork.totalTokensClaimable = audiusNetwork.totalTokensClaimable.minus(event.params._decreaseAmount)
+  audiusNetwork.totalTokensLocked = audiusNetwork.totalTokensLocked.plus(event.params._decreaseAmount)
+  audiusNetwork.save()  
 }
 
 export function handleDecreaseStakeRequestCancelled(event: DecreaseStakeRequestCancelled): void {
@@ -136,6 +158,12 @@ export function handleDecreaseStakeRequestCancelled(event: DecreaseStakeRequestC
   user.totalClaimableAmount = user.totalClaimableAmount.plus(decreaseStakeEvent.decreaseAmount)
   user.claimableStakeAmount = user.claimableStakeAmount.plus(decreaseStakeEvent.decreaseAmount)
   user.save()
+
+  // Update Global stake values
+  let audiusNetwork = AudiusNetwork.load('1')
+  audiusNetwork.totalTokensClaimable = audiusNetwork.totalTokensClaimable.plus(decreaseStakeEvent.decreaseAmount)
+  audiusNetwork.totalTokensLocked = audiusNetwork.totalTokensLocked.minus(decreaseStakeEvent.decreaseAmount)
+  audiusNetwork.save()
 }
 
 export function handleDecreaseStakeRequestEvaluated(event: DecreaseStakeRequestEvaluated): void {
@@ -151,7 +179,13 @@ export function handleDecreaseStakeRequestEvaluated(event: DecreaseStakeRequestE
 
   user.pendingDecreaseStake = null
   user.stakeAmount = event.params._newStakeAmount
+  checkUserStakeDelegation(user)
   user.save()
+
+  // Update Global stake values
+  let audiusNetwork = AudiusNetwork.load('1')
+  audiusNetwork.totalTokensLocked = audiusNetwork.totalTokensLocked.minus(decreaseStakeEvent.decreaseAmount)
+  audiusNetwork.save()
 }
 
 export function handleDeployerCutUpdateRequested(event: DeployerCutUpdateRequested): void {

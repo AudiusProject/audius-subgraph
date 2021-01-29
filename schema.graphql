@@ -38,7 +38,7 @@ type AudiusNetwork @entity {
   "Total tokens that are currently locked or withdrawable in the network from unstaking/undelegating"
   totalTokensLocked: BigInt
   "Total delegated tokens in the protocol"
-  totalDelegatedTokens: BigInt
+  totalTokensDelegated: BigInt
 
   # ==================== Delegate global aggregate values ====================
   "The max number of delegators per service provider"
@@ -109,6 +109,7 @@ type ServiceTypeVersion @entity {
 
 type ServiceNode @entity {
   id: ID!
+  spId: BigInt!
   owner: User!
   type: ServiceType!
   endpoint: String!
@@ -132,6 +133,7 @@ type User @entity {
   claimableDelegationReceivedAmount: BigInt!
   "The total delegation sent to other users minus my own pending decrease delegation"
   claimableDelegationSentAmount: BigInt!
+  
   "The total staked"
   stakeAmount: BigInt!
   "The total delegated"
@@ -139,12 +141,20 @@ type User @entity {
   "The total delegation sent"
   delegationSentAmount: BigInt!
 
+ "Boolean set to true if the user has stake or delegation"
+  hasStakeOrDelegation: Boolean!
 
   validBounds: Boolean
+
+  "The percentage of the claim from the delegator that the the deployer takes"
   deployerCut: BigInt
+
+  "List of services operated by the user"
   services: [ServiceNode!] @derivedFrom(field: "owner")
 
+  "Max stake of the user as determined by number of services and service types"
   minAccountStake: BigInt
+  "Min stake of the user as determined by number of services and service types"
   maxAccountStake: BigInt
 
   delegateTo: [Delegate!] @derivedFrom(field: "fromUser")
@@ -156,6 +166,8 @@ type User @entity {
   pendingUpdateDeployerCut: UpdateDeployerCutEvent
   pendingUndelegateStake: UndelegateStakeEvent  
 
+  # Governance Fields
+  votes: [Vote!] @derivedFrom(field: "voter")
 
   createdAt: BigInt!
 }
@@ -249,7 +261,6 @@ type IncreaseDelegatedStakeEvent @entity {
 
 type ClaimEvent @entity {
   id: ID!
-  createdAt: BigInt!
   claimer: User!
   rewards: BigInt!
   newTotal: BigInt!
@@ -258,7 +269,6 @@ type ClaimEvent @entity {
 
 type SlashEvent @entity {
   id: ID!
-  createdAt: BigInt!
   target: User!
   amount: BigInt!
   newTotal: BigInt!
@@ -302,3 +312,113 @@ type DeregisteredServiceProviderEvent @entity {
   blockNumber: BigInt!
 }
 
+
+# Voting Events
+# enum VoteType {
+#   None
+#   Yes
+#   No
+# }
+
+# enum in sol
+# enum Outcome {
+#   InProgress
+#   Rejected
+#   ApprovedExecuted
+#   QuorumNotMet
+#   ApprovedExecutionFailed
+#   Evaluating
+#   Vetoed
+#   TargetContractAddressChanged
+#   TargetContractCodeHashChanged
+# }
+
+type Proposal @entity {
+  "Proposal ID"
+  id: ID!
+  name: String!
+  description: String!
+  proposer: User!
+  submissionBlockNumber: BigInt!
+  targetContractRegistryKey: Bytes!
+  targetContractAddress: Bytes!
+  callValue: BigInt!
+  functionSignature: String!
+  callData: Bytes!
+  outcome: Int!
+  voteMagnitudeYes: BigInt!
+  voteMagnitudeNo: BigInt!
+  numVotes: BigInt!
+  votes: [Vote!]! @derivedFrom(field: "proposal")
+}
+
+type Vote @entity {
+  id: ID!
+  proposal: Proposal!
+  vote: Int!
+  magnitude: BigInt!
+  voter: User!
+  createdBlockNumber: BigInt!
+  updatedBlockNumber: BigInt
+}
+
+type ProposalSubmittedEvent @entity {
+  id: ID!
+  proposal: Proposal!
+  proposer: User!
+  name: String!
+  description: String!
+}
+
+type ProposalVoteSubmittedEvent @entity {
+  id: ID!
+  proposal: Proposal!
+  voter: User!
+  vote: Vote!
+  voterStake: BigInt!
+  blockNumber: BigInt!
+}
+
+type ProposalVoteUpdatedEvent @entity {
+  id: ID!
+  proposal: Proposal!
+  voter: User!
+  vote: Vote!
+  voterStake: BigInt!
+  previousVote: Int!
+  blockNumber: BigInt!
+}
+
+type ProposalOutcomeEvaluatedEvent @entity {
+  id: ID!
+  proposal: Proposal!
+  outcome: Int!
+  voteMagnitudeYes: BigInt!
+  voteMagnitudeNo: BigInt!
+  numVotes: BigInt!
+  blockNumber: BigInt!
+}
+
+type ProposalTransactionExecutedEvent @entity {
+  id: ID!
+  proposal: Proposal!
+  success: Boolean!
+  returnData: Bytes
+  blockNumber: BigInt!
+}
+
+type GuardianTransactionExecutedEvent @entity {
+  id: ID!
+  targetContractAddress: Bytes!
+  callValue: BigInt!
+  functionSignature: String!
+  callData: Bytes!
+  returnData: Bytes!
+  blockNumber: BigInt!
+}
+
+type ProposalVetoedEvent @entity {
+  id: ID!
+  proposal: Proposal!
+  blockNumber: BigInt!
+}
