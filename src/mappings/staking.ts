@@ -18,5 +18,5 @@ export function handleUnstaked(event: Unstaked): void {
   audiusNetwork.save()
 }
 export function handleSlashed(event: Slashed): void {
-
+// Ignore this, look at delegate manager
 }

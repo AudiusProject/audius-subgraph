@@ -24,6 +24,9 @@ export function createOrLoadUser(
     user.delegationReceivedAmount = BigInt.fromI32(0)
     user.delegationSentAmount = BigInt.fromI32(0)
     user.balance = BigInt.fromI32(0)
+    user.minAccountStake = BigInt.fromI32(0)
+    user.maxAccountStake = BigInt.fromI32(0)
+    user.validBounds = true
     user.hasStakeOrDelegation = false
     user.save()
   }
@@ -52,9 +55,7 @@ export function createOrLoadAudiusNetwork(): AudiusNetwork {
     audiusNetwork.totalTokensClaimable = BigInt.fromI32(0)
     audiusNetwork.totalTokensLocked = BigInt.fromI32(0)
     audiusNetwork.totalTokensDelegated = BigInt.fromI32(0)
-    audiusNetwork.temp6 = false 
     audiusNetwork.totalStaked = BigInt.fromI32(0)
-
     audiusNetwork.save()
   }
 
@@ -97,4 +98,42 @@ export function checkUserStakeDelegation(user: User): void {
 
 export function getVoteId(proposalId: string, userId: string): string {
   return proposalId + '::' + userId
+}
+
+export function getVoteType(num: u32): string|null {
+  switch (num) {
+    case 0:
+      return 'None'
+    case 1:
+      return 'No'
+    case 2:
+      return 'Yes'
+    default:
+      return null
+    }
+}
+
+export function getProposalOutcome(num: u32): string|null {
+  switch (num) {
+    case 0:
+      return 'InProgress'
+    case 1:
+      return 'Rejected'
+    case 2:
+      return 'ApprovedExecuted'
+    case 3:
+      return 'QuorumNotMet'
+    case 4:
+      return 'ApprovedExecutionFailed'
+    case 5:
+      return 'Evaluating'
+    case 6:
+      return 'Vetoed'
+    case 7:
+      return 'TargetContractAddressChanged'
+    case 8:
+      return 'TargetContractCodeHashChanged'
+    default:
+      return null
+    }
 }

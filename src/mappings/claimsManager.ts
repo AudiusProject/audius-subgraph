@@ -70,23 +70,6 @@ export function handleClaimProcessed(event: ClaimProcessed): void {
 
   let addedTokensStaked = claimer.stakeAmount.minus(prevStaked)
   
-  if (audiusNetwork.temp6 == false) {
-    audiusNetwork.temp1 = addedTokensStaked
-    audiusNetwork.temp2 = BigInt.fromI32(0)
-    audiusNetwork.temp2 = audiusNetwork.temp2.plus(addedTokensStaked)
-    audiusNetwork.temp3 = event.params._rewards
-    audiusNetwork.temp4 = event.params._newTotal
-    audiusNetwork.temp5 = event.params._oldTotal  
-    audiusNetwork.tempUser = claimer.id  
-    audiusNetwork.prevStaked = prevStaked
-    audiusNetwork.blkNum = event.block.number
-    audiusNetwork.newStake = claimer.stakeAmount
-    audiusNetwork.delegationReceivedAmount = claimer.delegationReceivedAmount
-    audiusNetwork.totalStakedAmoun = totalStakedAmount
-  }
-
-  // audiusNetwork.totalTokensClaimable.plus(addedTokensStaked)
-  audiusNetwork.totalTokensClaimable = audiusNetwork.totalTokensClaimable.plus(addedTokensStaked)
   audiusNetwork.totalTokensStaked = audiusNetwork.totalTokensStaked.plus(addedTokensStaked)
   audiusNetwork.totalTokensDelegated = audiusNetwork.totalTokensDelegated.plus(event.params._rewards.minus(addedTokensStaked))
 
@@ -107,25 +90,11 @@ export function handleClaimProcessed(event: ClaimProcessed): void {
       delegator.claimableDelegationSentAmount = delegator.claimableDelegationSentAmount.plus(delegationDiff)
       delegator.delegationSentAmount = delegator.delegationSentAmount.plus(delegationDiff)
       delegator.totalClaimableAmount = delegator.totalClaimableAmount.plus(delegationDiff)
-      delegator.save()
-
-      if (audiusNetwork.temp6 == false) {
-        audiusNetwork.temp2 = audiusNetwork.temp2.plus(delegationDiff)
-      }
-    
-      audiusNetwork.totalTokensClaimable = audiusNetwork.totalTokensClaimable.plus(delegationDiff)
+      delegator.save() 
     }
   }
 
-  // Update Global stake values
-
-  if (audiusNetwork.temp6 == false) {
-    if (!(audiusNetwork.temp3 as BigInt).equals(audiusNetwork.temp2 as BigInt)) {
-      audiusNetwork.temp6 = true
-    }
-  }
-
-  // audiusNetwork.totalTokensClaimable = audiusNetwork.totalTokensClaimable.plus(event.params._rewards)
+  audiusNetwork.totalTokensClaimable = audiusNetwork.totalTokensClaimable.plus(event.params._rewards)
   audiusNetwork.save()
 }
 

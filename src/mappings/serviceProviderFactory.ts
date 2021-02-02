@@ -41,6 +41,8 @@ export function handleRegisteredServiceProvider(event: RegisteredServiceProvider
   // Query the ServiceProviderFactory contract for extra data
   let serviceProviderContract = ServiceProviderFactory.bind(event.address)
   let serviceEndpointInfo = serviceProviderContract.getServiceEndpointInfo(event.params._serviceType, event.params._spID)
+  let serviceProviderDetails = serviceProviderContract.getServiceProviderDetails(event.params._owner)
+
   serviceNode.delegateOwnerWallet = serviceEndpointInfo.value3
   serviceNode.spId = event.params._spID
   serviceNode.owner = user.id
@@ -50,7 +52,9 @@ export function handleRegisteredServiceProvider(event: RegisteredServiceProvider
 
   // Update the user Stake Amount
   let addedStake = event.params._stakeAmount.minus(user.stakeAmount).minus(user.delegationReceivedAmount)
-  user.stakeAmount = user.stakeAmount.plus(addedStake)
+  user.stakeAmount = serviceProviderDetails.value0
+  user.minAccountStake = serviceProviderDetails.value4
+  user.maxAccountStake = serviceProviderDetails.value5
   user.claimableStakeAmount = user.claimableStakeAmount.plus(addedStake) 
   user.totalClaimableAmount = user.claimableStakeAmount.plus(user.claimableDelegationSentAmount)
   user.hasStakeOrDelegation = true
@@ -82,6 +86,14 @@ export function handleDeregisteredServiceProvider(event: DeregisteredServiceProv
   serviceNode.isRegistered = false
   serviceNode.save()
 
+  let serviceProviderContract = ServiceProviderFactory.bind(event.address)
+  let serviceProviderDetails = serviceProviderContract.getServiceProviderDetails(event.params._owner)
+
+  let user = createOrLoadUser(event.params._owner, event.block.timestamp)
+  user.minAccountStake = serviceProviderDetails.value4
+  user.maxAccountStake = serviceProviderDetails.value5
+  user.save()
+
   // Create the event
   let deregisterEvent = new DeregisteredServiceProviderEvent(id)
   deregisterEvent.type = event.params._serviceType.toString()
@@ -95,11 +107,13 @@ export function handleDeregisteredServiceProvider(event: DeregisteredServiceProv
 }
 
 export function handleIncreasedStake(event: IncreasedStake): void {
+  let serviceProviderContract = ServiceProviderFactory.bind(event.address)
+  let serviceProviderDetails = serviceProviderContract.getServiceProviderDetails(event.params._owner)
+
   // Update the user stake amount
   let user = createOrLoadUser(event.params._owner, event.block.timestamp)
-  let updateAmount = event.params._newStakeAmount.minus(user.stakeAmount)
-  user.stakeAmount = event.params._newStakeAmount
-  user.claimableStakeAmount = user.claimableStakeAmount.plus(updateAmount)
+  user.stakeAmount = serviceProviderDetails.value0 // event.params._newStakeAmount
+  user.claimableStakeAmount = user.claimableStakeAmount.plus(event.params._increaseAmount)
   user.totalClaimableAmount = user.claimableStakeAmount.plus(user.claimableDelegationSentAmount)
   user.save()
 
@@ -177,8 +191,11 @@ export function handleDecreaseStakeRequestEvaluated(event: DecreaseStakeRequestE
   decreaseStakeEvent.endedBlockNumber = event.block.number
   decreaseStakeEvent.save()
 
+  let serviceProviderContract = ServiceProviderFactory.bind(event.address)
+  let serviceProviderDetails = serviceProviderContract.getServiceProviderDetails(event.params._owner)
+
   user.pendingDecreaseStake = null
-  user.stakeAmount = event.params._newStakeAmount
+  user.stakeAmount = serviceProviderDetails.value0 // event.params._newStakeAmount
   checkUserStakeDelegation(user)
   user.save()
 
