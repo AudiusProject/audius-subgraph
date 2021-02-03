@@ -1,8 +1,6 @@
 import { BigInt, Bytes } from '@graphprotocol/graph-ts'
 import {
   User,
-  ServiceNode,
-  ServiceType,
   AudiusNetwork,
   Delegate
 } from '../types/schema'

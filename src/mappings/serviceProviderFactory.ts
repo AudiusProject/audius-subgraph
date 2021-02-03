@@ -1,3 +1,4 @@
+import { BigInt, log } from '@graphprotocol/graph-ts'
 import {
   RegisteredServiceProvider,
   DeregisteredServiceProvider,
@@ -82,7 +83,13 @@ export function handleDeregisteredServiceProvider(event: DeregisteredServiceProv
   // Update the service node to be deregistered
   let id = getServiceId(event.params._serviceType.toString(), event.params._spID.toString())
   let serviceNode = ServiceNode.load(id)
-  if (serviceNode === null) return
+  if (serviceNode === null) {
+    log.error('No associated service to deregister: service type:{}, id:{}', [
+      event.params._serviceType.toString(),
+      event.params._spID.toString()
+    ])
+    return
+  }
   serviceNode.isRegistered = false
   serviceNode.save()
 
@@ -90,6 +97,33 @@ export function handleDeregisteredServiceProvider(event: DeregisteredServiceProv
   let serviceProviderDetails = serviceProviderContract.getServiceProviderDetails(event.params._owner)
 
   let user = createOrLoadUser(event.params._owner, event.block.timestamp)
+  let numberEndpoints = serviceProviderDetails.value3
+  if (numberEndpoints == BigInt.fromI32(0)){
+    // Since this is the last service to be deregistered, a decrease stake request is created,
+    // but no event is emitted, so we manually create a new decrease stake request for the user's stake amount
+    let lockupDuration = serviceProviderContract.getDecreaseStakeLockupDuration()
+    let decreaseAmount = user.stakeAmount
+    let id = getRequestCountId()
+    let decreaseStakeEvent = new DecreaseStakeEvent(id)
+    decreaseStakeEvent.status = 'Requested'
+    decreaseStakeEvent.owner = user.id
+    decreaseStakeEvent.expiryBlock = event.block.number.plus(lockupDuration)
+    decreaseStakeEvent.createdBlockNumber = event.block.number
+    decreaseStakeEvent.decreaseAmount = decreaseAmount
+    decreaseStakeEvent.save()
+
+    user.pendingDecreaseStake = decreaseStakeEvent.id
+    user.totalClaimableAmount = user.totalClaimableAmount.minus(decreaseAmount)
+    user.claimableStakeAmount = user.claimableStakeAmount.minus(decreaseAmount)
+    user.save()
+  
+    // Update Global stake values
+    let audiusNetwork = AudiusNetwork.load('1')
+    audiusNetwork.totalTokensClaimable = audiusNetwork.totalTokensClaimable.minus(decreaseAmount)
+    audiusNetwork.totalTokensLocked = audiusNetwork.totalTokensLocked.plus(decreaseAmount)
+    audiusNetwork.save()
+  }
+
   user.minAccountStake = serviceProviderDetails.value4
   user.maxAccountStake = serviceProviderDetails.value5
   user.save()
@@ -161,6 +195,9 @@ export function handleDecreaseStakeRequestCancelled(event: DecreaseStakeRequestC
   let user = createOrLoadUser(event.params._owner, event.block.timestamp)
   let decreaseStakeEventId = user.pendingDecreaseStake
   if (decreaseStakeEventId === null) {
+    log.error('No associated decrease stake request to cancel: user:{}', [
+      user.id
+    ])
     return
   }
   let decreaseStakeEvent = DecreaseStakeEvent.load(decreaseStakeEventId)
@@ -184,6 +221,9 @@ export function handleDecreaseStakeRequestEvaluated(event: DecreaseStakeRequestE
   let user = createOrLoadUser(event.params._owner, event.block.timestamp)
   let decreaseStakeEventId = user.pendingDecreaseStake
   if (decreaseStakeEventId === null) {
+    log.error('No associated decrease stake request to evaluate: user:{}', [
+      user.id
+    ])
     return
   }
   let decreaseStakeEvent = DecreaseStakeEvent.load(decreaseStakeEventId)
@@ -225,6 +265,9 @@ export function handleDeployerCutUpdateRequestCancelled(event: DeployerCutUpdate
   let user = createOrLoadUser(event.params._owner, event.block.timestamp)
   let updateDeployerCutEventId = user.pendingUpdateDeployerCut
   if (updateDeployerCutEventId === null) {
+    log.error('No associated update deployer cut request to cancel: user:{}', [
+      user.id
+    ])
     return
   }
   let updateDeployerCutEvent = UpdateDeployerCutEvent.load(updateDeployerCutEventId)
@@ -240,6 +283,9 @@ export function handleDeployerCutUpdateRequestEvaluated(event: DeployerCutUpdate
   let user = createOrLoadUser(event.params._owner, event.block.timestamp)
   let updateDeployerCutEventId = user.pendingUpdateDeployerCut
   if (updateDeployerCutEventId === null) {
+    log.error('No associated update deployer cut request to evaluate: user:{}', [
+      user.id
+    ])
     return
   }
   let updateDeployerCutEvent = UpdateDeployerCutEvent.load(updateDeployerCutEventId)
@@ -256,6 +302,10 @@ export function handleEndpointUpdated(event: EndpointUpdated): void {
   let serviceNodeId = getServiceId(event.params._serviceType.toString(), event.params._spID.toString())
   let serviceNode = ServiceNode.load(serviceNodeId)
   if (!serviceNode) {
+    log.error('No associated service to update endpoint: service type:{}, spID:{}', [
+      event.params._serviceType.toString(),
+      event.params._spID.toString()
+    ])
     return
   }
   serviceNode.endpoint = event.params._newEndpoint
@@ -266,6 +316,10 @@ export function handleDelegateOwnerWalletUpdated(event: DelegateOwnerWalletUpdat
   let serviceNodeId = getServiceId(event.params._serviceType.toString(), event.params._spID.toString())
   let serviceNode = ServiceNode.load(serviceNodeId)
   if (!serviceNode) {
+    log.error('No associated service to update owner wallet: service type:{}, spID:{}', [
+      event.params._serviceType.toString(),
+      event.params._spID.toString()
+    ])
     return
   }
   serviceNode.delegateOwnerWallet = event.params._updatedWallet

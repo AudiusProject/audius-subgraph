@@ -45,11 +45,11 @@ type AudiusNetwork @entity {
   maxDelegators: BigInt
   "The minimum amount needed to delegate"
   minDelegationAmount: BigInt
-  ""
+  "The minimum number of blocks the user must wait from requesting undelegation to evaluating"
   undelegateLockupDuration: BigInt
-  ""
+  "The minimum number of blocks the user must wait from requesting remove delegator to evaluating"
   removeDelegatorLockupDuration: BigInt
-  ""
+  "Evaluation period for a remove delegator request"
   removeDelegatorEvalDuration: BigInt
 
   # ==================== Service Provider Factory globals ====================
@@ -98,7 +98,6 @@ type ServiceType @entity {
   "Max Token Stake to run the service"
   maxStake: BigInt!
   versions: [ServiceTypeVersion!]! @derivedFrom(field: "serviceType")
-  # activeCount: Int!
 }
 
 type ServiceTypeVersion @entity {
@@ -110,23 +109,29 @@ type ServiceTypeVersion @entity {
 
 
 type ServiceNode @entity {
+  "ID - generated from service-type and spID"
   id: ID!
+  "Service provider ID - autoincrementing id created for each new service node"
   spId: BigInt!
+  "Reference to user that registered this service"
   owner: User!
+  "Reference to the service type"
   type: ServiceType!
+  "URI to access the service node"
   endpoint: String!
+  "Address used to confirm the ownership of the service node"
   delegateOwnerWallet: Bytes!
+  "When the service node was created"
   createdAt: Int!
+  "Boolean if th service is registered/deregistered"
   isRegistered: Boolean!
 }
 
 type User @entity {
   "Eth address of User"
   id: ID!
-
   "Token balance"
   balance: BigInt!
-
   "The total staked/delegated minus pending decrease stake/delegation"
   totalClaimableAmount: BigInt!
   "The total staked minus pending decrease stake"

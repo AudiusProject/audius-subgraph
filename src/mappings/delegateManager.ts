@@ -1,4 +1,4 @@
-import { BigInt } from '@graphprotocol/graph-ts'
+import { BigInt, log } from '@graphprotocol/graph-ts'
 import {
   IncreaseDelegatedStake,
   UndelegateStakeRequested,
@@ -23,11 +23,6 @@ import {
 import { Staking } from '../types/Staking/Staking'
 import {
   AudiusNetwork,
-  ServiceNode,
-  RegisteredServiceProviderEvent,
-  DeregisteredServiceProviderEvent,
-  IncreasedStakeEvent,
-  UpdateDeployerCutEvent,
   RemoveDelegatorEvent,
   UndelegateStakeEvent,
   IncreaseDelegatedStakeEvent,
@@ -35,7 +30,6 @@ import {
   DecreaseStakeEvent
 } from '../types/schema'
 import { 
-  getServiceId, 
   createOrLoadUser,
   createOrLoadDelegate,
   getRequestCountId,
@@ -204,6 +198,10 @@ export function handleUndelegateStakeRequestCancelled(event: UndelegateStakeRequ
   let serviceProvider = createOrLoadUser(event.params._serviceProvider, event.block.timestamp)
   let undelegateStakeId = delegator.pendingUndelegateStake
   if (undelegateStakeId === null) {
+    log.error('No associated undelegate stake request to cancel: delegator:{}, service provider:{}', [
+      delegator.id,
+      serviceProvider.id
+    ])
     return
   }
   let undelegateStakeEvent = UndelegateStakeEvent.load(undelegateStakeId)
@@ -235,6 +233,10 @@ export function handleUndelegateStakeRequestEvaluated(event: UndelegateStakeRequ
   let serviceProvider = createOrLoadUser(event.params._serviceProvider, event.block.timestamp)
   let undelegateStakeId = delegator.pendingUndelegateStake
   if (undelegateStakeId === null) {
+    log.error('No associated undelegate stake request to evaluate: delegator:{}, service provider:{}', [
+      delegator.id,
+      serviceProvider.id
+    ])
     return
   }
   let undelegateStakeEvent = UndelegateStakeEvent.load(undelegateStakeId)
@@ -285,7 +287,9 @@ export function handleRemoveDelegatorRequestCancelled(event: RemoveDelegatorRequ
   let serviceProvider = createOrLoadUser(event.params._serviceProvider, event.block.timestamp)
   let removeDelegatorEventId = serviceProvider.pendingRemoveDelegator
   if (removeDelegatorEventId === null) {
-    return
+    log.error('No associated remove delegator request to cancel: service provider:{}', [
+      serviceProvider.id
+    ])
   }
   let removeDelegatorEvent = RemoveDelegatorEvent.load(removeDelegatorEventId)
   removeDelegatorEvent.status = 'Cancelled'
@@ -301,6 +305,9 @@ export function handleRemoveDelegatorRequestEvaluated(event: RemoveDelegatorRequ
   let delegator = createOrLoadUser(event.params._delegator, event.block.timestamp)
   let removeDelegatorEventId = serviceProvider.pendingRemoveDelegator
   if (removeDelegatorEventId === null) {
+    log.error('No associated remove delegator request to evaluate: service provider:{}', [
+      serviceProvider.id
+    ])
     return
   }
   let removeDelegatorEvent = RemoveDelegatorEvent.load(removeDelegatorEventId)
