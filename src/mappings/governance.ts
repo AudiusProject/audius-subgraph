@@ -29,7 +29,9 @@ import {
 } from '../types/schema'
 import { 
   createOrLoadUser,
-  getVoteId
+  getVoteId,
+  getProposalOutcome,
+  getVoteType,
 } from './helpers'
 
 export function handleProposalSubmitted(event: ProposalSubmitted): void {
@@ -46,7 +48,7 @@ export function handleProposalSubmitted(event: ProposalSubmitted): void {
   proposal.callValue = contractProposal.value5
   proposal.functionSignature = contractProposal.value6
   proposal.callData = contractProposal.value7
-  proposal.outcome = contractProposal.value8
+  proposal.outcome = getProposalOutcome(contractProposal.value8)
   proposal.voteMagnitudeYes = contractProposal.value9
   proposal.voteMagnitudeNo = contractProposal.value10
   proposal.numVotes = contractProposal.value11
@@ -67,18 +69,19 @@ export function handleProposalVoteSubmitted(event: ProposalVoteSubmitted): void 
   let user = createOrLoadUser(event.params._voter, event.block.timestamp)
   let voteId = getVoteId(proposalId, user.id)
   let vote = new Vote(voteId)
+  let voteType = getVoteType(event.params._vote)
   vote.proposal = proposalId
   vote.voter = user.id
-  vote.vote = event.params._vote
+  vote.vote = voteType
   vote.magnitude = event.params._voterStake
   vote.createdBlockNumber = event.block.number
   vote.updatedBlockNumber = event.block.number
   vote.save()
 
-  if (event.params._vote == 2) {
+  if (voteType == 'Yes') {
     proposal.numVotes = proposal.numVotes.plus(BigInt.fromI32(1))
     proposal.voteMagnitudeYes = proposal.voteMagnitudeYes.plus(event.params._voterStake)
-  } else if (event.params._vote == 1) {
+  } else if (voteType == 'No') {
     proposal.numVotes = proposal.numVotes.plus(BigInt.fromI32(1))
     proposal.voteMagnitudeNo = proposal.voteMagnitudeNo.plus(event.params._voterStake)
   }
@@ -89,6 +92,7 @@ export function handleProposalVoteSubmitted(event: ProposalVoteSubmitted): void 
   proposalVoteSubmittedEvent.proposal = proposalId
   proposalVoteSubmittedEvent.voter = user.id
   proposalVoteSubmittedEvent.vote = vote.id
+  proposalVoteSubmittedEvent.currentVote = voteType
   proposalVoteSubmittedEvent.voterStake = event.params._voterStake 
   proposalVoteSubmittedEvent.blockNumber = event.block.number
   proposalVoteSubmittedEvent.save()
@@ -100,20 +104,19 @@ export function handleProposalVoteUpdated(event: ProposalVoteUpdated): void {
   let user = createOrLoadUser(event.params._voter, event.block.timestamp)
   let voteId = getVoteId(proposalId, user.id)
   let vote = Vote.load(voteId)
-  vote.vote = event.params._vote
+  let voteType = getVoteType(event.params._vote)
+  vote.vote = voteType
   vote.updatedBlockNumber = event.block.number
-
-  // let voteMagnitude = VoteMagnitude.load(voteId)
-
-  if (event.params._previousVote == 2) {
+  let prevVoteType = getVoteType(event.params._previousVote)
+  if (prevVoteType == 'Yes') {
     proposal.voteMagnitudeYes = proposal.voteMagnitudeYes.minus(vote.magnitude)
-  } else if (event.params._previousVote == 1) {
+  } else if (prevVoteType == 'No') {
     proposal.voteMagnitudeNo = proposal.voteMagnitudeNo.minus(vote.magnitude)
   }
 
-  if (event.params._vote == 2) {
+  if (voteType == 'Yes') {
     proposal.voteMagnitudeYes = proposal.voteMagnitudeYes.plus(event.params._voterStake)
-  } else if (event.params._vote == 1) {
+  } else if (voteType == 'No') {
     proposal.voteMagnitudeNo = proposal.voteMagnitudeNo.plus(event.params._voterStake)
   }
 
@@ -128,30 +131,68 @@ export function handleProposalVoteUpdated(event: ProposalVoteUpdated): void {
   proposalVoteUpdatedEvent.voter = user.id
   proposalVoteUpdatedEvent.vote = vote.id
   proposalVoteUpdatedEvent.voterStake = event.params._voterStake 
-  proposalVoteUpdatedEvent.previousVote = event.params._previousVote
+  proposalVoteUpdatedEvent.currentVote = voteType
+  proposalVoteUpdatedEvent.previousVote = prevVoteType
   proposalVoteUpdatedEvent.blockNumber = event.block.number
   proposalVoteUpdatedEvent.save()
 
 }
 
 export function handleProposalOutcomeEvaluated(event: ProposalOutcomeEvaluated): void {
-  // TODO: Figure this out!
-  return
+  let proposalId = event.params._proposalId.toString()
+  let proposal = Proposal.load(proposalId)
+  proposal.outcome = getProposalOutcome(event.params._outcome)
+
+  // TODO: Update proposal
+  let eventId = event.transaction.from.toHex()
+  let proposalOutcomeEvaluatedEvent = new ProposalOutcomeEvaluatedEvent(eventId)
+  proposalOutcomeEvaluatedEvent.proposal = proposal.id
+  proposalOutcomeEvaluatedEvent.outcome = proposal.outcome
+  proposalOutcomeEvaluatedEvent.voteMagnitudeYes = event.params._voteMagnitudeYes
+  proposalOutcomeEvaluatedEvent.voteMagnitudeNo = event.params._voteMagnitudeNo
+  proposalOutcomeEvaluatedEvent.numVotes = event.params._numVotes
+  proposalOutcomeEvaluatedEvent.blockNumber = event.block.number
+  proposalOutcomeEvaluatedEvent.save()
 }
 
 export function handleProposalTransactionExecuted(event: ProposalTransactionExecuted): void {
-  // TODO: Figure this out!
-  return
-}
+  let proposalId = event.params._proposalId.toString()
+  let proposal = Proposal.load(proposalId)
+  // TODO: Update proposal
 
-export function handleGuardianTransactionExecuted(event: GuardianTransactionExecuted): void {
-  // TODO: Figure this out!
-  return
+
+  let eventId = event.transaction.from.toHex()
+  let proposalTransactionExecutedEvent = new ProposalTransactionExecutedEvent(eventId)
+  proposalTransactionExecutedEvent.proposal = proposal.id
+  proposalTransactionExecutedEvent.success = event.params._success
+  proposalTransactionExecutedEvent.returnData = event.params._returnData
+  proposalTransactionExecutedEvent.blockNumber = event.block.number
+  proposalTransactionExecutedEvent.save()
 }
 
 export function handleProposalVetoed(event: ProposalVetoed): void {
-  // TODO: Figure this out!
-  return
+  let proposalId = event.params._proposalId.toString()
+  let proposal = Proposal.load(proposalId)
+  // TODO: Update proposal
+
+
+  let eventId = event.transaction.from.toHex()
+  let proposalVetoedEvent = new ProposalVetoedEvent(eventId)
+  proposalVetoedEvent.proposal = proposal.id
+  proposalVetoedEvent.blockNumber = event.block.number
+  proposalVetoedEvent.save()
+}
+
+export function handleGuardianTransactionExecuted(event: GuardianTransactionExecuted): void {
+  let eventId = event.transaction.from.toHex()
+  let guardianTransactionExecutedEvent = new GuardianTransactionExecutedEvent(eventId)
+  guardianTransactionExecutedEvent.targetContractAddress = event.params._targetContractAddress
+  guardianTransactionExecutedEvent.callValue = event.params._callValue
+  guardianTransactionExecutedEvent.functionSignature = event.params._functionSignature.toString()
+  guardianTransactionExecutedEvent.callData = event.params._callData
+  guardianTransactionExecutedEvent.returnData = event.params._returnData
+  guardianTransactionExecutedEvent.blockNumber = event.block.number
+  guardianTransactionExecutedEvent.save()
 }
 
 export function handleRegistryAddressUpdated(event: RegistryAddressUpdated): void {

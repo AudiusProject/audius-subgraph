@@ -45,11 +45,11 @@ type AudiusNetwork @entity {
   maxDelegators: BigInt
   "The minimum amount needed to delegate"
   minDelegationAmount: BigInt
-  ""
+  "The minimum number of blocks the user must wait from requesting undelegation to evaluating"
   undelegateLockupDuration: BigInt
-  ""
+  "The minimum number of blocks the user must wait from requesting remove delegator to evaluating"
   removeDelegatorLockupDuration: BigInt
-  ""
+  "Evaluation period for a remove delegator request"
   removeDelegatorEvalDuration: BigInt
 
   # ==================== Service Provider Factory globals ====================
@@ -84,6 +84,8 @@ type AudiusNetwork @entity {
   # ==================== Helper for lockup event ====================
   ""
   requestCount: BigInt!
+
+  totalStaked: BigInt!
 }
 
 type ServiceType @entity {
@@ -96,7 +98,6 @@ type ServiceType @entity {
   "Max Token Stake to run the service"
   maxStake: BigInt!
   versions: [ServiceTypeVersion!]! @derivedFrom(field: "serviceType")
-  # activeCount: Int!
 }
 
 type ServiceTypeVersion @entity {
@@ -108,23 +109,29 @@ type ServiceTypeVersion @entity {
 
 
 type ServiceNode @entity {
+  "ID - generated from service-type and spID"
   id: ID!
+  "Service provider ID - autoincrementing id created for each new service node"
   spId: BigInt!
+  "Reference to user that registered this service"
   owner: User!
+  "Reference to the service type"
   type: ServiceType!
+  "URI to access the service node"
   endpoint: String!
+  "Address used to confirm the ownership of the service node"
   delegateOwnerWallet: Bytes!
+  "When the service node was created"
   createdAt: Int!
+  "Boolean if th service is registered/deregistered"
   isRegistered: Boolean!
 }
 
 type User @entity {
   "Eth address of User"
   id: ID!
-
   "Token balance"
   balance: BigInt!
-
   "The total staked/delegated minus pending decrease stake/delegation"
   totalClaimableAmount: BigInt!
   "The total staked minus pending decrease stake"
@@ -144,6 +151,7 @@ type User @entity {
  "Boolean set to true if the user has stake or delegation"
   hasStakeOrDelegation: Boolean!
 
+  "If the user's stake is between the min/max stake"
   validBounds: Boolean
 
   "The percentage of the claim from the delegator that the the deployer takes"
@@ -157,30 +165,44 @@ type User @entity {
   "Min stake of the user as determined by number of services and service types"
   maxAccountStake: BigInt
 
+  # ===== Keep track of delegations to/from ===== 
+  "Reference to delegations (user & amount) sent by user"
   delegateTo: [Delegate!] @derivedFrom(field: "fromUser")
+  "Reference to delegations (user & amount) received by user"
   delegateFrom: [Delegate!] @derivedFrom(field: "toUser")
 
-  # Keep track of pending events
+  # ===== Keep track of pending events ===== 
+
+  "Reference to request to pending decrease stake"
   pendingDecreaseStake: DecreaseStakeEvent  
+  "Reference to request to remove delegator"
   pendingRemoveDelegator: RemoveDelegatorEvent
+  "Reference to request to update deployer cut"
   pendingUpdateDeployerCut: UpdateDeployerCutEvent
+  "Reference to request to update undelegate stake"
   pendingUndelegateStake: UndelegateStakeEvent  
 
-  # Governance Fields
+  # ===== Keep track of governance events ===== 
+  "Reference to votes by the user"
   votes: [Vote!] @derivedFrom(field: "voter")
 
   createdAt: BigInt!
 }
 
 type Delegate @entity {
+  "ID - generated w/ the service provider's & delegator's addresses"
   id: ID!
+  "The amount delegated minus the pending decrease delegation"
   claimableAmount: BigInt!
+  "The amount delegated"
   amount: BigInt!
+  "Reference to the user sending/delegating tokens"
   fromUser: User!
+  "Reference to the user receiving delegation"
   toUser: User!
 }
 
-# Event Mappings
+# ==================== Delegation & Staking Event Mappings ============================== 
 enum LockupStatus {
   Requested
   Cancelled
@@ -272,6 +294,7 @@ type SlashEvent @entity {
   target: User!
   amount: BigInt!
   newTotal: BigInt!
+  blockNumber: BigInt!
 }
 
 type ClaimRound @entity {
@@ -313,31 +336,38 @@ type DeregisteredServiceProviderEvent @entity {
 }
 
 
+# ==================== Governance Proposals & Votes Event Mappings ============================== 
+
+# TODO: implement the enum by converting the raw event type to string enum
+
 # Voting Events
-# enum VoteType {
-#   None
-#   Yes
-#   No
-# }
+enum VoteType {
+  None
+  Yes
+  No
+}
 
 # enum in sol
-# enum Outcome {
-#   InProgress
-#   Rejected
-#   ApprovedExecuted
-#   QuorumNotMet
-#   ApprovedExecutionFailed
-#   Evaluating
-#   Vetoed
-#   TargetContractAddressChanged
-#   TargetContractCodeHashChanged
-# }
+enum Outcome {
+  InProgress
+  Rejected
+  ApprovedExecuted
+  QuorumNotMet
+  ApprovedExecutionFailed
+  Evaluating
+  Vetoed
+  TargetContractAddressChanged
+  TargetContractCodeHashChanged
+}
 
 type Proposal @entity {
-  "Proposal ID"
+  "Proposal ID from the event (auto-incrementing)"
   id: ID!
+  "Proposal name"
   name: String!
+  "Proposal description"
   description: String!
+  "Reference to the user submitting the proposal"
   proposer: User!
   submissionBlockNumber: BigInt!
   targetContractRegistryKey: Bytes!
@@ -345,20 +375,33 @@ type Proposal @entity {
   callValue: BigInt!
   functionSignature: String!
   callData: Bytes!
-  outcome: Int!
+
+  "TODO: convert int to enum - Outcome"
+  outcome: Outcome
+  "Total vote weight for 'Yes'"
   voteMagnitudeYes: BigInt!
+  "Total vote weight for 'No'"
   voteMagnitudeNo: BigInt!
+  "Number of votes"
   numVotes: BigInt!
+  "Reference to the votes - user & vote weight"
   votes: [Vote!]! @derivedFrom(field: "proposal")
 }
 
 type Vote @entity {
+  "ID - generated from proposal id and user address"
   id: ID!
+  "Reference to the proposal"
   proposal: Proposal!
-  vote: Int!
+  "TODO: update to enum - the voter's vote"
+  vote: VoteType
+  "The vote weight - the voter's claimable stake"
   magnitude: BigInt!
+  "Reference the the user submitting the voter"
   voter: User!
+  "The block number the vote was created"
   createdBlockNumber: BigInt!
+  "The block number the vote was updated"
   updatedBlockNumber: BigInt
 }
 
@@ -375,6 +418,7 @@ type ProposalVoteSubmittedEvent @entity {
   proposal: Proposal!
   voter: User!
   vote: Vote!
+  currentVote: VoteType!
   voterStake: BigInt!
   blockNumber: BigInt!
 }
@@ -385,14 +429,15 @@ type ProposalVoteUpdatedEvent @entity {
   voter: User!
   vote: Vote!
   voterStake: BigInt!
-  previousVote: Int!
+  currentVote: VoteType!
+  previousVote: VoteType!
   blockNumber: BigInt!
 }
 
 type ProposalOutcomeEvaluatedEvent @entity {
   id: ID!
   proposal: Proposal!
-  outcome: Int!
+  outcome: Outcome
   voteMagnitudeYes: BigInt!
   voteMagnitudeNo: BigInt!
   numVotes: BigInt!

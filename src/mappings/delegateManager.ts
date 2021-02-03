@@ -1,4 +1,4 @@
-import { BigInt } from '@graphprotocol/graph-ts'
+import { BigInt, log } from '@graphprotocol/graph-ts'
 import {
   IncreaseDelegatedStake,
   UndelegateStakeRequested,
@@ -23,18 +23,13 @@ import {
 import { Staking } from '../types/Staking/Staking'
 import {
   AudiusNetwork,
-  ServiceNode,
-  RegisteredServiceProviderEvent,
-  DeregisteredServiceProviderEvent,
-  IncreasedStakeEvent,
-  UpdateDeployerCutEvent,
   RemoveDelegatorEvent,
   UndelegateStakeEvent,
   IncreaseDelegatedStakeEvent,
-  ClaimEvent
+  SlashEvent,
+  DecreaseStakeEvent
 } from '../types/schema'
 import { 
-  getServiceId, 
   createOrLoadUser,
   createOrLoadDelegate,
   getRequestCountId,
@@ -47,7 +42,85 @@ export function handleClaim(event: Claim): void {
 }
 
 export function handleSlash(event: Slash): void {
-  return
+  // Any pending decrease stake is remove from the service provider => cancelled
+  // Cancel all decrease delegation to that service provider
+
+  let id = event.transaction.from.toHex()
+  let slashedUser = createOrLoadUser(event.params._target, event.block.timestamp)
+  let slashEvent = new SlashEvent(id)
+  slashEvent.amount = event.params._amount
+  slashEvent.target = slashedUser.id
+  slashEvent.newTotal = event.params._newTotal
+  slashEvent.blockNumber = event.block.number
+  slashEvent.save()
+  let audiusNetwork = AudiusNetwork.load('1')
+
+  let delegateManagerContract = DelegateManager.bind(event.address)
+  let stakingAddress = delegateManagerContract.getStakingAddress()
+  let stakingContract = Staking.bind(stakingAddress)
+
+  let totalSlashedUserDelegated = delegateManagerContract.getTotalDelegatedToServiceProvider(event.params._target)
+  let totalSlashedUserDelegatedLocked = delegateManagerContract.getTotalLockedDelegationForServiceProvider(event.params._target)
+  let totalStakedAmount = stakingContract.totalStakedFor(event.params._target)
+  let prevStaked = slashedUser.stakeAmount 
+
+  // All pending decrease delegation are cancelled
+  slashedUser.delegationReceivedAmount = totalSlashedUserDelegated
+  slashedUser.claimableDelegationReceivedAmount = totalSlashedUserDelegated
+
+  slashedUser.claimableDelegationReceivedAmount = totalSlashedUserDelegated.minus(totalSlashedUserDelegatedLocked)
+
+  // The pending decrease stake request is cancelled
+  slashedUser.stakeAmount = totalStakedAmount.minus(slashedUser.delegationReceivedAmount)
+  slashedUser.claimableStakeAmount = slashedUser.stakeAmount
+  slashedUser.totalClaimableAmount = slashedUser.claimableStakeAmount.plus(slashedUser.claimableDelegationSentAmount)
+  slashedUser.save()
+
+  if (slashedUser.pendingDecreaseStake != null) {
+    let decreaseStakeEvent = DecreaseStakeEvent.load(slashedUser.pendingDecreaseStake)
+    decreaseStakeEvent.status = 'Cancelled'
+    decreaseStakeEvent.endedBlockNumber = event.block.number
+    decreaseStakeEvent.save()
+  }
+
+  let removedTokens = prevStaked.minus(slashedUser.stakeAmount)
+  
+  audiusNetwork.totalTokensStaked = audiusNetwork.totalTokensStaked.minus(removedTokens)
+  audiusNetwork.totalTokensDelegated = audiusNetwork.totalTokensDelegated.minus(event.params._amount.minus(removedTokens))
+
+  // Handle all the delegators
+  let delegators = delegateManagerContract.getDelegatorsList(event.params._target)
+  for (let i = 0; i < delegators.length; ++i) {
+    let delegatorAddress = delegators[i]
+    let delegator = createOrLoadUser(delegatorAddress, event.block.timestamp)
+    let delegateAmount = delegateManagerContract.getDelegatorStakeForServiceProvider(delegatorAddress, event.params._target)
+    let delegate = createOrLoadDelegate(event.params._target, delegatorAddress)
+    let delegationDiff = delegate.amount.minus(delegateAmount)
+
+    delegate.claimableAmount = delegateAmount
+    delegate.amount = delegateAmount
+    delegate.save()
+
+    if (delegator.pendingUndelegateStake != null) {
+      let undelegateStakeEvent = UndelegateStakeEvent.load(delegator.pendingUndelegateStake)
+      undelegateStakeEvent.status = 'Cancelled'
+      undelegateStakeEvent.endedBlockNumber = event.block.number
+      undelegateStakeEvent.save()
+
+      let pendingDecreaseAmount = undelegateStakeEvent.amount 
+      delegator.claimableDelegationSentAmount = delegator.claimableDelegationSentAmount.plus(pendingDecreaseAmount)
+      delegator.totalClaimableAmount = delegator.totalClaimableAmount.plus(pendingDecreaseAmount)
+    }
+
+    delegator.pendingUndelegateStake = null
+    delegator.claimableDelegationSentAmount = delegator.claimableDelegationSentAmount.minus(delegationDiff)
+    delegator.delegationSentAmount = delegator.delegationSentAmount.minus(delegationDiff)
+    delegator.totalClaimableAmount = delegator.totalClaimableAmount.minus(delegationDiff)
+    delegator.save() 
+  }
+
+  audiusNetwork.totalTokensClaimable = audiusNetwork.totalTokensClaimable.minus(event.params._amount)
+  audiusNetwork.save()
 }
 
 export function handleIncreaseDelegatedStake(event: IncreaseDelegatedStake): void {
@@ -125,6 +198,10 @@ export function handleUndelegateStakeRequestCancelled(event: UndelegateStakeRequ
   let serviceProvider = createOrLoadUser(event.params._serviceProvider, event.block.timestamp)
   let undelegateStakeId = delegator.pendingUndelegateStake
   if (undelegateStakeId === null) {
+    log.error('No associated undelegate stake request to cancel: delegator:{}, service provider:{}', [
+      delegator.id,
+      serviceProvider.id
+    ])
     return
   }
   let undelegateStakeEvent = UndelegateStakeEvent.load(undelegateStakeId)
@@ -156,6 +233,10 @@ export function handleUndelegateStakeRequestEvaluated(event: UndelegateStakeRequ
   let serviceProvider = createOrLoadUser(event.params._serviceProvider, event.block.timestamp)
   let undelegateStakeId = delegator.pendingUndelegateStake
   if (undelegateStakeId === null) {
+    log.error('No associated undelegate stake request to evaluate: delegator:{}, service provider:{}', [
+      delegator.id,
+      serviceProvider.id
+    ])
     return
   }
   let undelegateStakeEvent = UndelegateStakeEvent.load(undelegateStakeId)
@@ -206,7 +287,9 @@ export function handleRemoveDelegatorRequestCancelled(event: RemoveDelegatorRequ
   let serviceProvider = createOrLoadUser(event.params._serviceProvider, event.block.timestamp)
   let removeDelegatorEventId = serviceProvider.pendingRemoveDelegator
   if (removeDelegatorEventId === null) {
-    return
+    log.error('No associated remove delegator request to cancel: service provider:{}', [
+      serviceProvider.id
+    ])
   }
   let removeDelegatorEvent = RemoveDelegatorEvent.load(removeDelegatorEventId)
   removeDelegatorEvent.status = 'Cancelled'
@@ -222,6 +305,9 @@ export function handleRemoveDelegatorRequestEvaluated(event: RemoveDelegatorRequ
   let delegator = createOrLoadUser(event.params._delegator, event.block.timestamp)
   let removeDelegatorEventId = serviceProvider.pendingRemoveDelegator
   if (removeDelegatorEventId === null) {
+    log.error('No associated remove delegator request to evaluate: service provider:{}', [
+      serviceProvider.id
+    ])
     return
   }
   let removeDelegatorEvent = RemoveDelegatorEvent.load(removeDelegatorEventId)

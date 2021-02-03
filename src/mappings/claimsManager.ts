@@ -69,8 +69,7 @@ export function handleClaimProcessed(event: ClaimProcessed): void {
   claimer.save()
 
   let addedTokensStaked = claimer.stakeAmount.minus(prevStaked)
- 
-  audiusNetwork.totalTokensClaimable = audiusNetwork.totalTokensClaimable.plus(addedTokensStaked)
+  
   audiusNetwork.totalTokensStaked = audiusNetwork.totalTokensStaked.plus(addedTokensStaked)
   audiusNetwork.totalTokensDelegated = audiusNetwork.totalTokensDelegated.plus(event.params._rewards.minus(addedTokensStaked))
 
@@ -91,14 +90,11 @@ export function handleClaimProcessed(event: ClaimProcessed): void {
       delegator.claimableDelegationSentAmount = delegator.claimableDelegationSentAmount.plus(delegationDiff)
       delegator.delegationSentAmount = delegator.delegationSentAmount.plus(delegationDiff)
       delegator.totalClaimableAmount = delegator.totalClaimableAmount.plus(delegationDiff)
-      delegator.save()
-
-      audiusNetwork.totalTokensClaimable = audiusNetwork.totalTokensClaimable.plus(delegationDiff)
+      delegator.save() 
     }
   }
 
-  // Update Global stake values
-  // audiusNetwork.totalTokensClaimable = audiusNetwork.totalTokensClaimable.plus(event.params._rewards)
+  audiusNetwork.totalTokensClaimable = audiusNetwork.totalTokensClaimable.plus(event.params._rewards)
   audiusNetwork.save()
 }
 

@@ -1,8 +1,7 @@
 # Audius Subgraph
 This repository contains the code for the Audius Network Subgraph using [The Graph](https://thegraph.com/).  
 
-The staging version of the subgraph can be explored through the playground \<TODO\>.  
-The mainnet version of the subgraph can be explored through the playground \<TODO\>.
+The [staging playground](https://thegraph.com/explorer/subgraph/audius-infra/audius-network-ropsten) and [mainnet playground](https://thegraph.com/explorer/subgraph/audius-infra/audius-network-mainnet) of the subgraph can be explored through the graph's explorer tool.
 
 ## TODO
 - [x] Set up a subgraph repo
