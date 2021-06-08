@@ -270,7 +270,7 @@ export function handleRemoveDelegatorRequested(event: RemoveDelegatorRequested):
   let serviceProvider = createOrLoadUser(event.params._serviceProvider, event.block.timestamp)
   let delegator = createOrLoadUser(event.params._delegator, event.block.timestamp)
 
-  let id = serviceProvider.id + delegator.id
+  let id = event.params._serviceProvider.toHexString() + event.params._delegator.toHexString()
   let removeDelegatorEvent = RemoveDelegatorEvent.load(id)
   if (removeDelegatorEvent == null) {
     removeDelegatorEvent = new RemoveDelegatorEvent(id)
@@ -285,12 +285,12 @@ export function handleRemoveDelegatorRequested(event: RemoveDelegatorRequested):
 
 export function handleRemoveDelegatorRequestCancelled(event: RemoveDelegatorRequestCancelled): void {
   let serviceProvider = createOrLoadUser(event.params._serviceProvider, event.block.timestamp)
-  let delegator = createOrLoadUser(event.params._delegator, event.block.timestamp)
 
-  let removeDelegatorEventId = serviceProvider.id + delegator.id
+  let removeDelegatorEventId = event.params._serviceProvider.toHexString() + event.params._delegator.toHexString()
   let removeDelegatorEvent = RemoveDelegatorEvent.load(removeDelegatorEventId)
-  if (removeDelegatorEvent === null || removeDelegatorEvent.status !== 'Requested') {
-    log.error('No associated remove delegator request to cancel: service provider:{}', [
+
+  if (removeDelegatorEvent === null) {
+    log.error('No remove delegator event for service provider :{}', [
       serviceProvider.id
     ])
     return
@@ -305,10 +305,10 @@ export function handleRemoveDelegatorRequestEvaluated(event: RemoveDelegatorRequ
   let serviceProvider = createOrLoadUser(event.params._serviceProvider, event.block.timestamp)
   let delegator = createOrLoadUser(event.params._delegator, event.block.timestamp)
 
-  let removeDelegatorEventId = serviceProvider.id + delegator.id
+  let removeDelegatorEventId = event.params._serviceProvider.toHexString() + event.params._delegator.toHexString()
   let removeDelegatorEvent = RemoveDelegatorEvent.load(removeDelegatorEventId)
-  if (removeDelegatorEvent === null || removeDelegatorEvent.status !== 'Requested') {
-    log.error('No associated remove delegator request to evaluate: service provider:{}', [
+  if (removeDelegatorEvent === null) {
+    log.error('No remove delegator event for service provider :{}', [
       serviceProvider.id
     ])
     return

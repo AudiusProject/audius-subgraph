@@ -175,6 +175,8 @@ type User @entity {
 
   "Reference to request to pending decrease stake"
   pendingDecreaseStake: DecreaseStakeEvent
+  "DEPRECATED: Use event with service operator and delegator id"
+  pendingRemoveDelegator: RemoveDelegatorEvent
 
   "Reference to request to update deployer cut"
   pendingUpdateDeployerCut: UpdateDeployerCutEvent
