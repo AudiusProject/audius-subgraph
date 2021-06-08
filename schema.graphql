@@ -174,9 +174,8 @@ type User @entity {
   # ===== Keep track of pending events ===== 
 
   "Reference to request to pending decrease stake"
-  pendingDecreaseStake: DecreaseStakeEvent  
-  "Reference to request to remove delegator"
-  pendingRemoveDelegator: RemoveDelegatorEvent
+  pendingDecreaseStake: DecreaseStakeEvent
+
   "Reference to request to update deployer cut"
   pendingUpdateDeployerCut: UpdateDeployerCutEvent
   "Reference to request to update undelegate stake"
