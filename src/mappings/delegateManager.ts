@@ -290,6 +290,7 @@ export function handleRemoveDelegatorRequestCancelled(event: RemoveDelegatorRequ
     log.error('No associated remove delegator request to cancel: service provider:{}', [
       serviceProvider.id
     ])
+    return
   }
   let removeDelegatorEvent = RemoveDelegatorEvent.load(removeDelegatorEventId)
   removeDelegatorEvent.status = 'Cancelled'
