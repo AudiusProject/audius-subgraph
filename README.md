@@ -24,8 +24,21 @@ The [staging playground](https://thegraph.com/explorer/subgraph/audius-infra/aud
 - [ ] Write mappings for Governance
 
 ## Deploying the subgraph
-TODO: Figure this part out
 
+There are two locations to deploy the subgraph:
+- The graph team's hosted solution
+- The graph main-net
+
+### Hosted
+```
+npm run prepare:prod
+npm run deploy:prod
+```
+You can then view the subgraph and watch it sync:
+https://thegraph.com/explorer/subgraph/audius-infra/audius-network-mainnet
+
+### Main-net
+TODO
 
 ## Reference
 Check out the docs from [The Graph](https://thegraph.com/docs/) for more information
