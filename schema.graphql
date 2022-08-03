@@ -290,6 +290,13 @@ type ClaimEvent @entity {
   blockNumber: BigInt!
 }
 
+type ClaimEventAmount @entity {
+  id: ID!
+  claimEvent: ClaimEvent!
+  rewards: BigInt!
+  user: User!
+}
+
 type SlashEvent @entity {
   id: ID!
   target: User!
