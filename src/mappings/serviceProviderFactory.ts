@@ -168,6 +168,7 @@ export function handleIncreasedStake(event: IncreasedStake): void {
 }
 
 export function handleDecreaseStakeRequested(event: DecreaseStakeRequested): void {
+  let audiusNetwork = AudiusNetwork.load('1')
   let user = createOrLoadUser(event.params._owner, event.block.timestamp)
 
   let id = getRequestCountId()
@@ -179,13 +180,26 @@ export function handleDecreaseStakeRequested(event: DecreaseStakeRequested): voi
   decreaseStakeEvent.decreaseAmount = event.params._decreaseAmount
   decreaseStakeEvent.save()
 
+  // Since pending decrease stake events can be replaced, undo the "claimable" affect of the previous event
+  if (user.pendingDecreaseStake !== null) {
+    let previousDecreaseStakeEvent = DecreaseStakeEvent.load(user.pendingDecreaseStake)
+    previousDecreaseStakeEvent.endedBlockNumber = event.block.number
+    previousDecreaseStakeEvent.save()
+
+    user.totalClaimableAmount = user.totalClaimableAmount.plus(previousDecreaseStakeEvent)
+    user.claimableStakeAmount = user.claimableStakeAmount.plus(previousDecreaseStakeEvent)
+  
+    // Update Global stake values
+    audiusNetwork.totalTokensClaimable = audiusNetwork.totalTokensClaimable.plus(previousDecreaseStakeEvent)
+    audiusNetwork.totalTokensLocked = audiusNetwork.totalTokensLocked.minus(previousDecreaseStakeEvent)
+  }
+
   user.pendingDecreaseStake = decreaseStakeEvent.id
   user.totalClaimableAmount = user.totalClaimableAmount.minus(event.params._decreaseAmount)
   user.claimableStakeAmount = user.claimableStakeAmount.minus(event.params._decreaseAmount)
   user.save()
 
   // Update Global stake values
-  let audiusNetwork = AudiusNetwork.load('1')
   audiusNetwork.totalTokensClaimable = audiusNetwork.totalTokensClaimable.minus(event.params._decreaseAmount)
   audiusNetwork.totalTokensLocked = audiusNetwork.totalTokensLocked.plus(event.params._decreaseAmount)
   audiusNetwork.save()  
