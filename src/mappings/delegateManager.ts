@@ -320,7 +320,27 @@ export function handleRemoveDelegatorRequestEvaluated(event: RemoveDelegatorRequ
   serviceProvider.claimableDelegationReceivedAmount = serviceProvider.claimableDelegationReceivedAmount.minus(event.params._unstakedAmount)
   serviceProvider.delegationReceivedAmount = serviceProvider.delegationReceivedAmount.minus(event.params._unstakedAmount)
   checkUserStakeDelegation(serviceProvider)
+
+  let audiusNetwork = AudiusNetwork.load('1')
+  let delegate = createOrLoadDelegate(event.params._serviceProvider, event.params._delegator)
+
+  let undelegateStakeId = delegator.pendingUndelegateStake
+  if (undelegateStakeId !== null) {
+    let undelegateStakeEvent = UndelegateStakeEvent.load(undelegateStakeId)
+    if (undelegateStakeEvent.serviceProvider.id === serviceProvider.id) {
+      delegator.totalClaimableAmount = delegator.totalClaimableAmount.plus(undelegateStakeEvent.amount)
+      delegator.claimableDelegationSentAmount = delegator.claimableDelegationSentAmount.plus(undelegateStakeEvent.amount)
+      delegator.pendingUndelegateStake = undelegateStakeEvent.id
+
+      serviceProvider.claimableDelegationReceivedAmount = serviceProvider.claimableDelegationReceivedAmount.plus(undelegateStakeEvent.amount)
+
+      audiusNetwork.totalTokensClaimable = audiusNetwork.totalTokensClaimable.plus(undelegateStakeEvent.amount)
+      audiusNetwork.totalTokensLocked = audiusNetwork.totalTokensStaked.minus(undelegateStakeEvent.amount)
+
+    }
+  }
   serviceProvider.save()
+
 
   delegator.claimableDelegationSentAmount = delegator.claimableDelegationSentAmount.minus(event.params._unstakedAmount)
   delegator.delegationSentAmount = delegator.delegationSentAmount.minus(event.params._unstakedAmount)
@@ -328,13 +348,11 @@ export function handleRemoveDelegatorRequestEvaluated(event: RemoveDelegatorRequ
   checkUserStakeDelegation(delegator)
   delegator.save()
 
-  let delegate = createOrLoadDelegate(event.params._serviceProvider, event.params._delegator)
   delegate.amount = BigInt.fromI32(0)
   delegate.claimableAmount = BigInt.fromI32(0)
   delegate.save()
 
   // Update Global stake values
-  let audiusNetwork = AudiusNetwork.load('1')
   audiusNetwork.totalTokensClaimable = audiusNetwork.totalTokensClaimable.minus(event.params._unstakedAmount)
   audiusNetwork.totalTokensDelegated = audiusNetwork.totalTokensDelegated.minus(event.params._unstakedAmount)
   audiusNetwork.save()
