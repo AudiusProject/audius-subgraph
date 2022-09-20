@@ -1,12 +1,12 @@
 {
-  "audiusToken": "0x74f24429ec3708fc21381e017194A5711E93B751",
-  "claimsManager": "0x2B7713BC2Ca92B222E3BEBe86f325792C9638313",
-  "delegateManager": "0xfFbEfA971Df7E0659a837ec071001Bd3451ba5c5",
-  "governance": "0x8f93A31d84517E3664109c9ae4aF561AC5274744",
-  "registry": "0xe39b1cA04fc06c416c4eaBd188Cb1330b8FED781",
-  "serviceProviderFactory": "0xf6E9Fc1AEbb0cF50e0BceE8446Dd01DE741B6351",
-  "serviceTypeManager": "0x26cA8f858aB1765538cCc10981915Aa3B6851f01",
-  "staking": "0x508a5dE6a61A062278623f93d448b40717665f80",
-  "blockNumber": "8893400",
-  "network": "ropsten"
+  "audiusToken": "0x5375BE4c52fA29b26077B0F15ee5254D779676A6",
+  "claimsManager": "0xb77228b1c32F777A787f33e13232015dB7B1D6F2",
+  "delegateManager": "0x037e2cCCf73D0991bA8F67920B6b6ea7106Ae07b",
+  "governance": "0x69b3F9b2628023f71E4B6E9b38b20A3D7D697319",
+  "registry": "0xF27A9c44d7d5DDdA29bC1eeaD94718EeAC1775e3",
+  "serviceProviderFactory": "0x93f7ec304cE624B8c9364a6eb2326D9Ce60579a9",
+  "serviceTypeManager": "0x86b018A0f9Ed4B1e6b448a8d33401c7bAf262cf2",
+  "staking": "0x232305360700ec3310B30DdBf155bb3a3A9606B9",
+  "blockNumber": "7562061",
+  "network": "goerli"
 }
