@@ -16,7 +16,8 @@ import {
 import {
   AudiusNetwork,
   ClaimRound,
-  ClaimEvent
+  ClaimEvent,
+  ClaimEventAmount
 } from '../types/schema'
 import { 
   createOrLoadUser,
@@ -64,9 +65,18 @@ export function handleClaimProcessed(event: ClaimProcessed): void {
   claimer.claimableDelegationReceivedAmount = totalClaimerDelegated.minus(totalClaimedDelegatedLocked)
 
   claimer.stakeAmount = totalStakedAmount.minus(claimer.delegationReceivedAmount)
-  claimer.claimableStakeAmount = claimer.stakeAmount.minus(pendingDecreaseStakeAmount)
+  let updatedClaimableStakeAmount = claimer.stakeAmount.minus(pendingDecreaseStakeAmount)
+  let claimerDiffAmount = updatedClaimableStakeAmount.minus(claimer.claimableStakeAmount)
+  claimer.claimableStakeAmount = updatedClaimableStakeAmount
   claimer.totalClaimableAmount = claimer.claimableStakeAmount.plus(claimer.claimableDelegationSentAmount)
   claimer.save()
+
+  // Save the individual sp'd increase during the claim
+  let claimEventAmount = new ClaimEventAmount(id.concat(claimer.id))
+  claimEventAmount.claimEvent = claimEvent.id
+  claimEventAmount.rewards = claimerDiffAmount
+  claimEventAmount.user = claimer.id
+  claimEventAmount.save()
 
   let addedTokensStaked = claimer.stakeAmount.minus(prevStaked)
   
@@ -90,7 +100,14 @@ export function handleClaimProcessed(event: ClaimProcessed): void {
       delegator.claimableDelegationSentAmount = delegator.claimableDelegationSentAmount.plus(delegationDiff)
       delegator.delegationSentAmount = delegator.delegationSentAmount.plus(delegationDiff)
       delegator.totalClaimableAmount = delegator.totalClaimableAmount.plus(delegationDiff)
-      delegator.save() 
+      delegator.save()
+
+      let claimEventAmountId = id.concat(delegator.id)
+      let claimEventAmount = new ClaimEventAmount(claimEventAmountId)
+      claimEventAmount.claimEvent = claimEvent.id
+      claimEventAmount.rewards = delegationDiff
+      claimEventAmount.user = delegator
+      claimEventAmount.save()
     }
   }
 
