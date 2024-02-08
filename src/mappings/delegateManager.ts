@@ -78,15 +78,19 @@ export function handleSlash(event: Slash): void {
 
   if (slashedUser.pendingDecreaseStake != null) {
     let decreaseStakeEvent = DecreaseStakeEvent.load(slashedUser.pendingDecreaseStake)
-    decreaseStakeEvent.status = 'Cancelled'
-    decreaseStakeEvent.endedBlockNumber = event.block.number
-    decreaseStakeEvent.save()
+    if (decreaseStakeEvent) {
+      decreaseStakeEvent.status = 'Cancelled'
+      decreaseStakeEvent.endedBlockNumber = event.block.number
+      decreaseStakeEvent.save()
+    }
   }
 
   let removedTokens = prevStaked.minus(slashedUser.stakeAmount)
   
-  audiusNetwork.totalTokensStaked = audiusNetwork.totalTokensStaked.minus(removedTokens)
-  audiusNetwork.totalTokensDelegated = audiusNetwork.totalTokensDelegated.minus(event.params._amount.minus(removedTokens))
+  if (audiusNetwork !== null) {
+    audiusNetwork.totalTokensStaked = audiusNetwork.totalTokensStaked != null ? audiusNetwork.totalTokensStaked.minus(removedTokens) : null
+    audiusNetwork.totalTokensDelegated = audiusNetwork.totalTokensDelegated != null ? audiusNetwork.totalTokensDelegated.minus(event.params._amount.minus(removedTokens)) : null
+  }
 
   // Handle all the delegators
   let delegators = delegateManagerContract.getDelegatorsList(event.params._target)
@@ -103,13 +107,14 @@ export function handleSlash(event: Slash): void {
 
     if (delegator.pendingUndelegateStake != null) {
       let undelegateStakeEvent = UndelegateStakeEvent.load(delegator.pendingUndelegateStake)
-      undelegateStakeEvent.status = 'Cancelled'
-      undelegateStakeEvent.endedBlockNumber = event.block.number
-      undelegateStakeEvent.save()
-
-      let pendingDecreaseAmount = undelegateStakeEvent.amount 
-      delegator.claimableDelegationSentAmount = delegator.claimableDelegationSentAmount.plus(pendingDecreaseAmount)
-      delegator.totalClaimableAmount = delegator.totalClaimableAmount.plus(pendingDecreaseAmount)
+      if (undelegateStakeEvent !== null) {
+        undelegateStakeEvent.status = 'Cancelled'
+        undelegateStakeEvent.endedBlockNumber = event.block.number
+        undelegateStakeEvent.save()
+        let pendingDecreaseAmount = undelegateStakeEvent.amount 
+        delegator.claimableDelegationSentAmount = delegator.claimableDelegationSentAmount.plus(pendingDecreaseAmount)
+        delegator.totalClaimableAmount = delegator.totalClaimableAmount.plus(pendingDecreaseAmount)
+      }
     }
 
     delegator.pendingUndelegateStake = null
@@ -119,8 +124,10 @@ export function handleSlash(event: Slash): void {
     delegator.save() 
   }
 
-  audiusNetwork.totalTokensClaimable = audiusNetwork.totalTokensClaimable.minus(event.params._amount)
-  audiusNetwork.save()
+  if (audiusNetwork !== null) {
+    audiusNetwork.totalTokensClaimable = audiusNetwork.totalTokensClaimable != null ? audiusNetwork.totalTokensClaimable.minus(event.params._amount) : null
+    audiusNetwork.save()
+  }
 }
 
 export function handleIncreaseDelegatedStake(event: IncreaseDelegatedStake): void {
@@ -155,8 +162,9 @@ export function handleIncreaseDelegatedStake(event: IncreaseDelegatedStake): voi
 
   // Update Global stake values
   let audiusNetwork = AudiusNetwork.load('1')
-  audiusNetwork.totalTokensClaimable = audiusNetwork.totalTokensClaimable.plus(event.params._increaseAmount)
-  audiusNetwork.totalTokensDelegated = audiusNetwork.totalTokensStaked.plus(event.params._increaseAmount)
+  if (audiusNetwork === null) return
+  audiusNetwork.totalTokensClaimable = audiusNetwork.totalTokensClaimable != null ? audiusNetwork.totalTokensClaimable.plus(event.params._increaseAmount) : null
+  audiusNetwork.totalTokensDelegated = audiusNetwork.totalTokensStaked != null ? audiusNetwork.totalTokensStaked.plus(event.params._increaseAmount) : null
   audiusNetwork.save()
 }
 
@@ -188,8 +196,9 @@ export function handleUndelegateStakeRequested(event: UndelegateStakeRequested):
 
   // Update Global stake values
   let audiusNetwork = AudiusNetwork.load('1')
-  audiusNetwork.totalTokensClaimable = audiusNetwork.totalTokensClaimable.minus(event.params._amount)
-  audiusNetwork.totalTokensLocked = audiusNetwork.totalTokensStaked.plus(event.params._amount)
+  if (audiusNetwork === null) return
+  audiusNetwork.totalTokensClaimable = audiusNetwork.totalTokensClaimable != null ? audiusNetwork.totalTokensClaimable.minus(event.params._amount) : null
+  audiusNetwork.totalTokensLocked = audiusNetwork.totalTokensStaked != null ? audiusNetwork.totalTokensStaked.plus(event.params._amount) : null
   audiusNetwork.save()
 }
 
@@ -205,9 +214,11 @@ export function handleUndelegateStakeRequestCancelled(event: UndelegateStakeRequ
     return
   }
   let undelegateStakeEvent = UndelegateStakeEvent.load(undelegateStakeId)
-  undelegateStakeEvent.status = 'Cancelled'
-  undelegateStakeEvent.endedBlockNumber = event.block.number
-  undelegateStakeEvent.save()
+  if (undelegateStakeEvent !== null) {
+    undelegateStakeEvent.status = 'Cancelled'
+    undelegateStakeEvent.endedBlockNumber = event.block.number
+    undelegateStakeEvent.save()
+  }
 
   delegator.totalClaimableAmount = delegator.totalClaimableAmount.plus(event.params._amount)
   delegator.claimableDelegationSentAmount = delegator.claimableDelegationSentAmount.plus(event.params._amount)
@@ -223,8 +234,9 @@ export function handleUndelegateStakeRequestCancelled(event: UndelegateStakeRequ
 
   // Update Global stake values
   let audiusNetwork = AudiusNetwork.load('1')
-  audiusNetwork.totalTokensClaimable = audiusNetwork.totalTokensClaimable.plus(event.params._amount)
-  audiusNetwork.totalTokensLocked = audiusNetwork.totalTokensStaked.minus(event.params._amount)
+  if (audiusNetwork === null) return
+  audiusNetwork.totalTokensClaimable = audiusNetwork.totalTokensClaimable != null ? audiusNetwork.totalTokensClaimable.plus(event.params._amount) : null
+  audiusNetwork.totalTokensLocked = audiusNetwork.totalTokensStaked != null ? audiusNetwork.totalTokensStaked.minus(event.params._amount) : null
   audiusNetwork.save()
 }
 
@@ -240,9 +252,11 @@ export function handleUndelegateStakeRequestEvaluated(event: UndelegateStakeRequ
     return
   }
   let undelegateStakeEvent = UndelegateStakeEvent.load(undelegateStakeId)
-  undelegateStakeEvent.status = 'Evaluated'
-  undelegateStakeEvent.endedBlockNumber = event.block.number
-  undelegateStakeEvent.save()
+  if (undelegateStakeEvent !== null) {
+    undelegateStakeEvent.status = 'Evaluated'
+    undelegateStakeEvent.endedBlockNumber = event.block.number
+    undelegateStakeEvent.save()
+  }
 
   event.params._amount
   delegator.delegationSentAmount = delegator.delegationSentAmount.minus(event.params._amount)
@@ -261,8 +275,9 @@ export function handleUndelegateStakeRequestEvaluated(event: UndelegateStakeRequ
 
   // Update Global stake values
   let audiusNetwork = AudiusNetwork.load('1')
-  audiusNetwork.totalTokensDelegated = audiusNetwork.totalTokensDelegated.minus(event.params._amount)
-  audiusNetwork.totalTokensLocked = audiusNetwork.totalTokensStaked.minus(event.params._amount)
+  if (audiusNetwork === null) return
+  audiusNetwork.totalTokensDelegated = audiusNetwork.totalTokensDelegated != null ? audiusNetwork.totalTokensDelegated.minus(event.params._amount) : null
+  audiusNetwork.totalTokensLocked = audiusNetwork.totalTokensStaked != null ? audiusNetwork.totalTokensStaked.minus(event.params._amount) : null
   audiusNetwork.save()
 }
 
@@ -335,13 +350,15 @@ export function handleRemoveDelegatorRequestEvaluated(event: RemoveDelegatorRequ
 
   // Update Global stake values
   let audiusNetwork = AudiusNetwork.load('1')
-  audiusNetwork.totalTokensClaimable = audiusNetwork.totalTokensClaimable.minus(event.params._unstakedAmount)
-  audiusNetwork.totalTokensDelegated = audiusNetwork.totalTokensDelegated.minus(event.params._unstakedAmount)
+  if (audiusNetwork === null) return
+  audiusNetwork.totalTokensClaimable = audiusNetwork.totalTokensClaimable !== null ? audiusNetwork.totalTokensClaimable.minus(event.params._unstakedAmount) : null
+  audiusNetwork.totalTokensDelegated = audiusNetwork.totalTokensDelegated !== null ? audiusNetwork.totalTokensDelegated.minus(event.params._unstakedAmount) : null
   audiusNetwork.save()
 }
 
 export function handleMaxDelegatorsUpdated(event: MaxDelegatorsUpdated): void {
   let audiusNetwork = AudiusNetwork.load('1')
+  if (audiusNetwork === null) return
   audiusNetwork.maxDelegators = event.params._maxDelegators
   audiusNetwork.save()
 
@@ -349,6 +366,7 @@ export function handleMaxDelegatorsUpdated(event: MaxDelegatorsUpdated): void {
 
 export function handleMinDelegationUpdated(event: MinDelegationUpdated): void {
   let audiusNetwork = AudiusNetwork.load('1')
+  if (audiusNetwork === null) return
   audiusNetwork.minDelegationAmount = event.params._minDelegationAmount
   audiusNetwork.save()
 
@@ -356,6 +374,7 @@ export function handleMinDelegationUpdated(event: MinDelegationUpdated): void {
 
 export function handleUndelegateLockupDurationUpdated(event: UndelegateLockupDurationUpdated): void {
   let audiusNetwork = AudiusNetwork.load('1')
+  if (audiusNetwork === null) return
   audiusNetwork.undelegateLockupDuration = event.params._undelegateLockupDuration
   audiusNetwork.save()
 
@@ -379,12 +398,14 @@ export function handleClaimsManagerAddressUpdated(event: ClaimsManagerAddressUpd
 
 export function handleRemoveDelegatorLockupDurationUpdated(event: RemoveDelegatorLockupDurationUpdated): void {
   let audiusNetwork = AudiusNetwork.load('1')
+  if (audiusNetwork === null) return
   audiusNetwork.removeDelegatorLockupDuration = event.params._removeDelegatorLockupDuration
   audiusNetwork.save()
 }
 
 export function handleRemoveDelegatorEvalDurationUpdated(event: RemoveDelegatorEvalDurationUpdated): void {
   let audiusNetwork = AudiusNetwork.load('1')
+  if (audiusNetwork === null) return
   audiusNetwork.removeDelegatorEvalDuration = event.params._removeDelegatorEvalDuration
   audiusNetwork.save()
 }
