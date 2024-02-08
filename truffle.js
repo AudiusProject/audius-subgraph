@@ -9,11 +9,11 @@ module.exports = {
       port: 8546,
       network_id: '*',
     },
-    goerli: {
+    sepolia: {
       provider: function() {
         return new HDWalletProvider(
           process.env.MNEMONIC,
-          `https://goerli.infura.io/v3/${process.env.GOERLI_INFURA_API_KEY}`
+          `https://sepolia.infura.io/v3/${process.env.SEPOLIA_INFURA_API_KEY}`
         )
       },
       network_id: '5',
