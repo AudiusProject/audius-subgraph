@@ -71,8 +71,8 @@ export function handleClaimProcessed(event: ClaimProcessed): void {
   let addedTokensStaked = claimer.stakeAmount.minus(prevStaked)
   
   if (audiusNetwork !== null) {
-    audiusNetwork.totalTokensStaked = audiusNetwork.totalTokensStaked != null ? audiusNetwork.totalTokensStaked.plus(addedTokensStaked) : null
-    audiusNetwork.totalTokensDelegated = audiusNetwork.totalTokensDelegated != null ? audiusNetwork.totalTokensDelegated.plus(event.params._rewards.minus(addedTokensStaked)): null
+    audiusNetwork.totalTokensStaked = audiusNetwork.totalTokensStaked !== null ? audiusNetwork.totalTokensStaked!.plus(addedTokensStaked) : null
+    audiusNetwork.totalTokensDelegated = audiusNetwork.totalTokensDelegated !== null ? audiusNetwork.totalTokensDelegated!.plus(event.params._rewards.minus(addedTokensStaked)): null
   }
 
   // Handle all the delegators
@@ -97,7 +97,7 @@ export function handleClaimProcessed(event: ClaimProcessed): void {
   }
 
   if (audiusNetwork !== null) {
-    audiusNetwork.totalTokensClaimable = audiusNetwork.totalTokensClaimable != null ? audiusNetwork.totalTokensClaimable.plus(event.params._rewards) : null
+    audiusNetwork.totalTokensClaimable = audiusNetwork.totalTokensClaimable !== null ? audiusNetwork.totalTokensClaimable!.plus(event.params._rewards) : null
     audiusNetwork.save()
   }
 }
