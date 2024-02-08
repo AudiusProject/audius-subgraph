@@ -10,6 +10,7 @@ import { AudiusNetwork } from '../types/schema'
  */
 export function handleTransfer(event: Transfer): void {
   let audiusNetwork = AudiusNetwork.load('1')
+  if (audiusNetwork === null) return
 
   let to = event.params.to
   let from = event.params.from
