@@ -27,6 +27,7 @@ export function handleServiceTypeAdded(event: ServiceTypeAdded): void {
 
 export function handleServiceTypeRemoved(event: ServiceTypeRemoved): void {
   let serviceType = ServiceType.load(event.params._serviceType.toString())
+  if (serviceType === null) return
   serviceType.isValid = false
   serviceType.save()
 }
