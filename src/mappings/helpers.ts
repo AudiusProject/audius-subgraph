@@ -98,7 +98,7 @@ export function getVoteId(proposalId: string, userId: string): string {
   return proposalId + '::' + userId
 }
 
-export function getVoteType(num: u32): string|null {
+export function getVoteType(num: number): string|null {
   switch (num) {
     case 0:
       return 'None'
@@ -111,7 +111,7 @@ export function getVoteType(num: u32): string|null {
     }
 }
 
-export function getProposalOutcome(num: u32): string|null {
+export function getProposalOutcome(num: number): string|null {
   switch (num) {
     case 0:
       return 'InProgress'
