@@ -93,7 +93,7 @@ export function handleProposalVoteSubmitted(event: ProposalVoteSubmitted): void 
   proposalVoteSubmittedEvent.proposal = proposalId
   proposalVoteSubmittedEvent.voter = user.id
   proposalVoteSubmittedEvent.vote = vote.id
-  proposalVoteSubmittedEvent.currentVote = voteType === 'Yes' ? voteType! : 'No'
+  proposalVoteSubmittedEvent.currentVote = voteType === 'Yes' ? voteType : 'No'
   proposalVoteSubmittedEvent.voterStake = event.params._voterStake 
   proposalVoteSubmittedEvent.blockNumber = event.block.number
   proposalVoteSubmittedEvent.save()

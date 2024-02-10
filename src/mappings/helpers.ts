@@ -98,7 +98,8 @@ export function getVoteId(proposalId: string, userId: string): string {
   return proposalId + '::' + userId
 }
 
-export function getVoteType(num: number): string|null {
+// @ts-ignore 'u32' is not a ts type but it's required for wasm
+export function getVoteType(num: u32): string|null {
   switch (num) {
     case 0:
       return 'None'
@@ -111,7 +112,8 @@ export function getVoteType(num: number): string|null {
     }
 }
 
-export function getProposalOutcome(num: number): string|null {
+// @ts-ignore 'u32' is not a ts type but it's required for wasm
+export function getProposalOutcome(num: u32): string|null {
   switch (num) {
     case 0:
       return 'InProgress'

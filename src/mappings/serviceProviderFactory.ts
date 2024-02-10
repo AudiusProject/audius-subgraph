@@ -75,8 +75,8 @@ export function handleRegisteredServiceProvider(event: RegisteredServiceProvider
   // Update Global stake values
   let audiusNetwork = AudiusNetwork.load('1')
   if (audiusNetwork === null) return
-  audiusNetwork.totalTokensClaimable = audiusNetwork.totalTokensClaimable !== null ? audiusNetwork.totalTokensClaimable.plus(addedStake) : null
-  audiusNetwork.totalTokensStaked = audiusNetwork.totalTokensStaked !== null ? audiusNetwork.totalTokensStaked.plus(addedStake) : null
+  audiusNetwork.totalTokensClaimable = audiusNetwork.totalTokensClaimable !== null ? audiusNetwork.totalTokensClaimable!.plus(addedStake) : null
+  audiusNetwork.totalTokensStaked = audiusNetwork.totalTokensStaked !== null ? audiusNetwork.totalTokensStaked!.plus(addedStake) : null
   audiusNetwork.save()
 }
 
@@ -121,8 +121,8 @@ export function handleDeregisteredServiceProvider(event: DeregisteredServiceProv
     // Update Global stake values
     let audiusNetwork = AudiusNetwork.load('1')
     if (audiusNetwork === null) return
-    audiusNetwork.totalTokensClaimable = audiusNetwork.totalTokensClaimable !== null ? audiusNetwork.totalTokensClaimable.minus(decreaseAmount) : null
-    audiusNetwork.totalTokensLocked = audiusNetwork.totalTokensLocked !== null ? audiusNetwork.totalTokensLocked.plus(decreaseAmount) : null
+    audiusNetwork.totalTokensClaimable = audiusNetwork.totalTokensClaimable !== null ? audiusNetwork.totalTokensClaimable!.minus(decreaseAmount) : null
+    audiusNetwork.totalTokensLocked = audiusNetwork.totalTokensLocked !== null ? audiusNetwork.totalTokensLocked!.plus(decreaseAmount) : null
     audiusNetwork.save()
   }
 
@@ -165,8 +165,8 @@ export function handleIncreasedStake(event: IncreasedStake): void {
   // Update Global stake values
   let audiusNetwork = AudiusNetwork.load('1')
   if (audiusNetwork === null) return
-  audiusNetwork.totalTokensClaimable = audiusNetwork.totalTokensClaimable !== null ? audiusNetwork.totalTokensClaimable.plus(event.params._increaseAmount) : null
-  audiusNetwork.totalTokensStaked = audiusNetwork.totalTokensStaked !== null ? audiusNetwork.totalTokensStaked.plus(event.params._increaseAmount) : null
+  audiusNetwork.totalTokensClaimable = audiusNetwork.totalTokensClaimable !== null ? audiusNetwork.totalTokensClaimable!.plus(event.params._increaseAmount) : null
+  audiusNetwork.totalTokensStaked = audiusNetwork.totalTokensStaked !== null ? audiusNetwork.totalTokensStaked!.plus(event.params._increaseAmount) : null
   audiusNetwork.save()
 }
 
@@ -190,8 +190,8 @@ export function handleDecreaseStakeRequested(event: DecreaseStakeRequested): voi
   // Update Global stake values
   let audiusNetwork = AudiusNetwork.load('1')
   if (audiusNetwork === null) return
-  audiusNetwork.totalTokensClaimable = audiusNetwork.totalTokensClaimable !== null ? audiusNetwork.totalTokensClaimable.minus(event.params._decreaseAmount) : null
-  audiusNetwork.totalTokensLocked = audiusNetwork.totalTokensLocked !== null ? audiusNetwork.totalTokensLocked.plus(event.params._decreaseAmount) : null
+  audiusNetwork.totalTokensClaimable = audiusNetwork.totalTokensClaimable !== null ? audiusNetwork.totalTokensClaimable!.minus(event.params._decreaseAmount) : null
+  audiusNetwork.totalTokensLocked = audiusNetwork.totalTokensLocked !== null ? audiusNetwork.totalTokensLocked!.plus(event.params._decreaseAmount) : null
   audiusNetwork.save()  
 }
 
@@ -218,8 +218,8 @@ export function handleDecreaseStakeRequestCancelled(event: DecreaseStakeRequestC
   // Update Global stake values
   let audiusNetwork = AudiusNetwork.load('1')
   if (audiusNetwork === null || decreaseStakeEvent === null) return
-  audiusNetwork.totalTokensClaimable = audiusNetwork.totalTokensClaimable !== null ? audiusNetwork.totalTokensClaimable.plus(decreaseStakeEvent.decreaseAmount) : null
-  audiusNetwork.totalTokensLocked = audiusNetwork.totalTokensLocked !== null ? audiusNetwork.totalTokensLocked.minus(decreaseStakeEvent.decreaseAmount) : null
+  audiusNetwork.totalTokensClaimable = audiusNetwork.totalTokensClaimable !== null ? audiusNetwork.totalTokensClaimable!.plus(decreaseStakeEvent.decreaseAmount) : null
+  audiusNetwork.totalTokensLocked = audiusNetwork.totalTokensLocked !== null ? audiusNetwork.totalTokensLocked!.minus(decreaseStakeEvent.decreaseAmount) : null
   audiusNetwork.save()
 }
 
@@ -250,7 +250,7 @@ export function handleDecreaseStakeRequestEvaluated(event: DecreaseStakeRequestE
   // Update Global stake values
   let audiusNetwork = AudiusNetwork.load('1')
   if (audiusNetwork === null || decreaseStakeEvent === null) return
-  audiusNetwork.totalTokensLocked = audiusNetwork.totalTokensLocked !== null ? audiusNetwork.totalTokensLocked.minus(decreaseStakeEvent.decreaseAmount) : null
+  audiusNetwork.totalTokensLocked = audiusNetwork.totalTokensLocked !== null ? audiusNetwork.totalTokensLocked!.minus(decreaseStakeEvent.decreaseAmount) : null
   audiusNetwork.save()
 }
 
