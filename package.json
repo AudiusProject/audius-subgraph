@@ -5,13 +5,13 @@
   "license": "Apache-2.0",
   "scripts": {
     "create:local": "graph create AudiusProject/audius-subgraph --node http://127.0.0.1:8020",
-    "create:stage": "graph create audius-infra/audius-network-goerli --node https://api.thegraph.com/deploy/",
+    "create:stage": "graph create audius-infra/audius-network-sepolia --node https://api.thegraph.com/deploy/",
     "create:prod": "graph create audius-infra/audius-network-mainnet --node https://api.thegraph.com/deploy/",
     "codegen": "graph codegen --output-dir src/types/",
     "build": "graph build",
     "build:mainnet": "graph build --ipfs https://ipfs.network.thegraph.com",
     "deploy:local": "graph deploy AudiusProject/audius-subgraph --ipfs http://localhost:5001 --node http://127.0.0.1:8020",
-    "deploy:stage": "graph deploy audius-infra/audius-network-goerli --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/",
+    "deploy:stage": "graph deploy audius-infra/audius-network-sepolia --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/",
     "deploy:prod": "graph deploy audius-infra/audius-network-mainnet --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/",
     "watch-local": "graph deploy AudiusProject/audius-subgraph --watch --debug --node http://127.0.0.1:8020/ --ipfs http://localhost:5001",
     "prepare:dev": "mustache ./config/dev.json subgraph.template.yaml > subgraph.yaml && yarn codegen",
@@ -21,8 +21,8 @@
     "lint:fix": "prettier --write '**/*.ts'"
   },
   "devDependencies": {
-    "@graphprotocol/graph-cli": "^0.19.0",
-    "@graphprotocol/graph-ts": "^0.19.0",
+    "@graphprotocol/graph-cli": "^0.22.0",
+    "@graphprotocol/graph-ts": "^0.25.0",
     "@types/node": "^14.14.21",
     "@typescript-eslint/eslint-plugin": "^4.14.0",
     "@typescript-eslint/parser": "^4.14.0",

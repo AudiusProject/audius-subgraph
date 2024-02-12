@@ -70,8 +70,10 @@ export function handleClaimProcessed(event: ClaimProcessed): void {
 
   let addedTokensStaked = claimer.stakeAmount.minus(prevStaked)
   
-  audiusNetwork.totalTokensStaked = audiusNetwork.totalTokensStaked.plus(addedTokensStaked)
-  audiusNetwork.totalTokensDelegated = audiusNetwork.totalTokensDelegated.plus(event.params._rewards.minus(addedTokensStaked))
+  if (audiusNetwork !== null) {
+    audiusNetwork.totalTokensStaked = audiusNetwork.totalTokensStaked !== null ? audiusNetwork.totalTokensStaked!.plus(addedTokensStaked) : null
+    audiusNetwork.totalTokensDelegated = audiusNetwork.totalTokensDelegated !== null ? audiusNetwork.totalTokensDelegated!.plus(event.params._rewards.minus(addedTokensStaked)): null
+  }
 
   // Handle all the delegators
   let delegators = delegateManagerContract.getDelegatorsList(event.params._claimer)
@@ -94,8 +96,10 @@ export function handleClaimProcessed(event: ClaimProcessed): void {
     }
   }
 
-  audiusNetwork.totalTokensClaimable = audiusNetwork.totalTokensClaimable.plus(event.params._rewards)
-  audiusNetwork.save()
+  if (audiusNetwork !== null) {
+    audiusNetwork.totalTokensClaimable = audiusNetwork.totalTokensClaimable !== null ? audiusNetwork.totalTokensClaimable!.plus(event.params._rewards) : null
+    audiusNetwork.save()
+  }
 }
 
 export function handleCommunityRewardsTransferred(event: CommunityRewardsTransferred): void {
@@ -104,12 +108,14 @@ export function handleCommunityRewardsTransferred(event: CommunityRewardsTransfe
 
 export function handleFundingAmountUpdated(event: FundingAmountUpdated): void {
   let audiusNetwork = AudiusNetwork.load('1')
+  if (audiusNetwork === null) return
   audiusNetwork.fundingAmount = event.params._amount
   audiusNetwork.save()
 }
 
 export function handleFundingRoundBlockDiffUpdated(event: FundingRoundBlockDiffUpdated): void {
   let audiusNetwork = AudiusNetwork.load('1')
+  if (audiusNetwork === null) return
   audiusNetwork.fundingRoundBlockDiff = event.params._blockDifference
   audiusNetwork.save()
 }
@@ -132,12 +138,14 @@ export function handleDelegateManagerAddressUpdated(event: DelegateManagerAddres
 
 export function handleRecurringCommunityFundingAmountUpdated(event: RecurringCommunityFundingAmountUpdated): void {
   let audiusNetwork = AudiusNetwork.load('1')
+  if (audiusNetwork === null) return
   audiusNetwork.recurringCommunityFundingAmount = event.params._amount
   audiusNetwork.save()
 }
 
 export function handleCommunityPoolAddressUpdated(event: CommunityPoolAddressUpdated): void {
   let audiusNetwork = AudiusNetwork.load('1')
+  if (audiusNetwork === null) return
   audiusNetwork.communityPoolAddress = event.params._newCommunityPoolAddress
   audiusNetwork.save()
 }

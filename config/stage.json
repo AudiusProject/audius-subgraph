@@ -1,12 +1,12 @@
 {
-  "audiusToken": "0x5375BE4c52fA29b26077B0F15ee5254D779676A6",
-  "claimsManager": "0xb77228b1c32F777A787f33e13232015dB7B1D6F2",
-  "delegateManager": "0x037e2cCCf73D0991bA8F67920B6b6ea7106Ae07b",
-  "governance": "0x69b3F9b2628023f71E4B6E9b38b20A3D7D697319",
-  "registry": "0xF27A9c44d7d5DDdA29bC1eeaD94718EeAC1775e3",
-  "serviceProviderFactory": "0x93f7ec304cE624B8c9364a6eb2326D9Ce60579a9",
-  "serviceTypeManager": "0x86b018A0f9Ed4B1e6b448a8d33401c7bAf262cf2",
-  "staking": "0x232305360700ec3310B30DdBf155bb3a3A9606B9",
-  "blockNumber": "7562061",
-  "network": "goerli"
+  "audiusToken": "0x1376180Ee935AA64A27780F4BE97726Df7B0e2B2",
+  "claimsManager": "0xcdFFAE230aeDC376478b16f369489A3b450fc2c8",
+  "delegateManager": "0xDA74d6FfbF268Ac441404f5a61f01103451E8697",
+  "governance": "0x04973b4416f7e3D62374Ef8b5ABD4a98e4dD401C",
+  "registry": "0xc682C2166E11690B64338e11633Cb8Bb60B0D9c0",
+  "serviceProviderFactory": "0x377BE01aD31360d0DFB16035A4515954395A8185",
+  "serviceTypeManager": "0x9fd76d2cD48022526F3a164541E6552291F4a862",
+  "staking": "0x5bcF21A4D5Bab9B0869B9c55D233f80135C814C6",
+  "blockNumber": "5117100",
+  "network": "sepolia"
 }

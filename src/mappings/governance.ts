@@ -65,6 +65,7 @@ export function handleProposalSubmitted(event: ProposalSubmitted): void {
 export function handleProposalVoteSubmitted(event: ProposalVoteSubmitted): void {
   let proposalId = event.params._proposalId.toString()
   let proposal = Proposal.load(proposalId)
+  if (proposal === null) return
 
   let user = createOrLoadUser(event.params._voter, event.block.timestamp)
   let voteId = getVoteId(proposalId, user.id)
@@ -92,7 +93,7 @@ export function handleProposalVoteSubmitted(event: ProposalVoteSubmitted): void 
   proposalVoteSubmittedEvent.proposal = proposalId
   proposalVoteSubmittedEvent.voter = user.id
   proposalVoteSubmittedEvent.vote = vote.id
-  proposalVoteSubmittedEvent.currentVote = voteType
+  proposalVoteSubmittedEvent.currentVote = voteType === 'Yes' ? voteType : 'No'
   proposalVoteSubmittedEvent.voterStake = event.params._voterStake 
   proposalVoteSubmittedEvent.blockNumber = event.block.number
   proposalVoteSubmittedEvent.save()
@@ -104,23 +105,27 @@ export function handleProposalVoteUpdated(event: ProposalVoteUpdated): void {
   let user = createOrLoadUser(event.params._voter, event.block.timestamp)
   let voteId = getVoteId(proposalId, user.id)
   let vote = Vote.load(voteId)
+  // if vote doesn't exist nothing we can index
+  if (vote === null) return
   let voteType = getVoteType(event.params._vote)
   vote.vote = voteType
   vote.updatedBlockNumber = event.block.number
   let prevVoteType = getVoteType(event.params._previousVote)
-  if (prevVoteType == 'Yes') {
-    proposal.voteMagnitudeYes = proposal.voteMagnitudeYes.minus(vote.magnitude)
-  } else if (prevVoteType == 'No') {
-    proposal.voteMagnitudeNo = proposal.voteMagnitudeNo.minus(vote.magnitude)
+  if (proposal !== null) {
+    if (prevVoteType == 'Yes') {
+      proposal.voteMagnitudeYes = proposal.voteMagnitudeYes.minus(vote.magnitude)
+    } else if (prevVoteType == 'No') {
+      proposal.voteMagnitudeNo = proposal.voteMagnitudeNo.minus(vote.magnitude)
+    }
+  
+    if (voteType == 'Yes') {
+      proposal.voteMagnitudeYes = proposal.voteMagnitudeYes.plus(event.params._voterStake)
+    } else if (voteType == 'No') {
+      proposal.voteMagnitudeNo = proposal.voteMagnitudeNo.plus(event.params._voterStake)
+    }
+  
+    proposal.save()
   }
-
-  if (voteType == 'Yes') {
-    proposal.voteMagnitudeYes = proposal.voteMagnitudeYes.plus(event.params._voterStake)
-  } else if (voteType == 'No') {
-    proposal.voteMagnitudeNo = proposal.voteMagnitudeNo.plus(event.params._voterStake)
-  }
-
-  proposal.save()
 
   vote.magnitude = event.params._voterStake
   vote.save()
@@ -131,8 +136,14 @@ export function handleProposalVoteUpdated(event: ProposalVoteUpdated): void {
   proposalVoteUpdatedEvent.voter = user.id
   proposalVoteUpdatedEvent.vote = vote.id
   proposalVoteUpdatedEvent.voterStake = event.params._voterStake 
-  proposalVoteUpdatedEvent.currentVote = voteType
-  proposalVoteUpdatedEvent.previousVote = prevVoteType
+  if (proposalVoteUpdatedEvent !== null) {
+    if (voteType !== null) {
+      proposalVoteUpdatedEvent.currentVote = voteType
+    }
+    if (prevVoteType !== null) {
+      proposalVoteUpdatedEvent.previousVote = prevVoteType
+    }
+  }
   proposalVoteUpdatedEvent.blockNumber = event.block.number
   proposalVoteUpdatedEvent.save()
 
@@ -141,6 +152,7 @@ export function handleProposalVoteUpdated(event: ProposalVoteUpdated): void {
 export function handleProposalOutcomeEvaluated(event: ProposalOutcomeEvaluated): void {
   let proposalId = event.params._proposalId.toString()
   let proposal = Proposal.load(proposalId)
+  if (proposal === null) return
   proposal.outcome = getProposalOutcome(event.params._outcome)
 
   // TODO: Update proposal
@@ -163,7 +175,9 @@ export function handleProposalTransactionExecuted(event: ProposalTransactionExec
 
   let eventId = event.transaction.from.toHex()
   let proposalTransactionExecutedEvent = new ProposalTransactionExecutedEvent(eventId)
-  proposalTransactionExecutedEvent.proposal = proposal.id
+  if (proposal !== null) {
+    proposalTransactionExecutedEvent.proposal = proposal.id
+  }
   proposalTransactionExecutedEvent.success = event.params._success
   proposalTransactionExecutedEvent.returnData = event.params._returnData
   proposalTransactionExecutedEvent.blockNumber = event.block.number
@@ -178,7 +192,9 @@ export function handleProposalVetoed(event: ProposalVetoed): void {
 
   let eventId = event.transaction.from.toHex()
   let proposalVetoedEvent = new ProposalVetoedEvent(eventId)
-  proposalVetoedEvent.proposal = proposal.id
+  if (proposal !== null) {
+    proposalVetoedEvent.proposal = proposal.id
+  }
   proposalVetoedEvent.blockNumber = event.block.number
   proposalVetoedEvent.save()
 }
@@ -202,21 +218,25 @@ export function handleRegistryAddressUpdated(event: RegistryAddressUpdated): voi
 
 export function handleGuardianshipTransferred(event: GuardianshipTransferred): void {
   let audiusNetwork = AudiusNetwork.load('1')
+  if (audiusNetwork === null) return
   audiusNetwork.guardianAddress = event.params._newGuardianAddress
   audiusNetwork.save()
 }
 export function handleVotingPeriodUpdated(event: VotingPeriodUpdated): void {
   let audiusNetwork = AudiusNetwork.load('1')
+  if (audiusNetwork === null) return
   audiusNetwork.votingPeriod = event.params._newVotingPeriod
   audiusNetwork.save()
 }
 export function handleExecutionDelayUpdated(event: ExecutionDelayUpdated): void {
   let audiusNetwork = AudiusNetwork.load('1')
+  if (audiusNetwork === null) return
   audiusNetwork.executionDelay = event.params._newExecutionDelay
   audiusNetwork.save()
 }
 export function handleVotingQuorumPercentUpdated(event: VotingQuorumPercentUpdated): void {
   let audiusNetwork = AudiusNetwork.load('1')
+  if (audiusNetwork === null) return
   audiusNetwork.votingQuorumPercent = event.params._newVotingQuorumPercent
   audiusNetwork.save()
 }
